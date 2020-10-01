@@ -80,7 +80,7 @@ size_t binaryfile_session<Handler>::process_packet(const net::packet_view& packe
         if (nr > payload_len) {
             throw std::runtime_error("payload overflow");
         }
-        payload_len -= nr;
+        payload_len -= static_cast<uint16_t>(nr);
         offset += nr;
     }
     return offset;

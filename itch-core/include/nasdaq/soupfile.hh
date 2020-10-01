@@ -69,7 +69,7 @@ size_t soupfile_session<Handler>::process_packet(const net::packet_view& packet)
     static std::string terminator = "\r\n";
     auto view = packet.as_string_view();
     auto terminator_start = view.find_first_of(terminator);
-    if (terminator_start == std::experimental::string_view::npos) {
+    if (terminator_start == std::string_view::npos) {
         throw std::runtime_error("packet is truncated");
     }
     if (!terminator_start) {

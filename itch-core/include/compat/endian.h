@@ -1,6 +1,9 @@
 #ifndef HELIX_ENDIAN_H
 #define HELIX_ENDIAN_H
 
+// TODO(): make endian conversions with stl helpers instead of preprocessor directives
+
+#ifndef _WIN32
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,6 +27,17 @@ extern "C" {
 
 #ifdef __cplusplus
 }
+#endif
+
+#else
+
+#define be16toh(x) (x)
+#define be32toh(x) (x)
+#define be64toh(x) (x)
+#define htobe16(x) (x)
+#define htobe32(x) (x)
+#define htobe64(x) (x)
+
 #endif
 
 #endif

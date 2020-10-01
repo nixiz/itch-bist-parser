@@ -1,6 +1,6 @@
 #pragma once
 
-#include <experimental/string_view>
+#include <string_view>
 #include <cstddef>
 
 namespace helix {
@@ -28,8 +28,8 @@ public:
         return _buf + _len;
     }
 
-    std::experimental::string_view as_string_view() const {
-        return std::experimental::string_view{_buf, _len};
+    std::string_view as_string_view() const {
+        return std::string_view{_buf, _len};
     }
 
     template<typename T>

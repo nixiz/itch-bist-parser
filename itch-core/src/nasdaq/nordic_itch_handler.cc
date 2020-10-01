@@ -157,8 +157,8 @@ void nordic_itch_handler::process_msg(const itch_add_order* m)
         auto& ob = it->second;
 
         uint64_t order_id = itch_uatoi(m->OrderReferenceNumber, sizeof(m->OrderReferenceNumber));
-        uint64_t price    = itch_uatoi(m->Price, sizeof(m->Price));;
-        uint32_t quantity = itch_uatoi(m->Quantity, sizeof(m->Quantity));;
+        uint64_t price    = itch_uatoi(m->Price, sizeof(m->Price));
+        uint32_t quantity = static_cast<uint32_t>(itch_uatoi(m->Quantity, sizeof(m->Quantity)));
         auto     side     = itch_side(m->BuySellIndicator);
 
         order o{order_id, price, quantity, side, timestamp()};
@@ -178,8 +178,8 @@ void nordic_itch_handler::process_msg(const itch_add_order_mpid* m)
         auto& ob = it->second;
 
         uint64_t order_id = itch_uatoi(m->OrderReferenceNumber, sizeof(m->OrderReferenceNumber));
-        uint64_t price    = itch_uatoi(m->Price, sizeof(m->Price));;
-        uint32_t quantity = itch_uatoi(m->Quantity, sizeof(m->Quantity));;
+        uint64_t price    = itch_uatoi(m->Price, sizeof(m->Price));
+        uint32_t quantity = static_cast<uint32_t>(itch_uatoi(m->Quantity, sizeof(m->Quantity)));
         auto     side     = itch_side(m->BuySellIndicator);
 
         order o{order_id, price, quantity, side, timestamp()};

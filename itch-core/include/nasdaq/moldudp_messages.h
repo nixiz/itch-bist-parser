@@ -21,18 +21,29 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include <stdint.h>
+
+#ifdef _WIN32
+#pragma pack(push,1)
+#define pack_attr
+#else
+#define pack_attr __attribute__((packed))
+#endif // WIN32
+
 
 struct moldudp_header {
     char     Session[10];
     uint32_t SequenceNumber;
     uint16_t MessageCount;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct moldudp_message_block {
     uint16_t MessageLength;
-} __attribute__ ((packed));
+} pack_attr;
+
+#ifdef _WIN32
+#pragma pack(pop)
+#endif // WIN32
 
 #ifdef __cplusplus
 }

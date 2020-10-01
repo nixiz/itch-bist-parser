@@ -1,4 +1,4 @@
-#include "helix-c/helix.h"
+#include "extern-c/helix.h"
 
 #include "nasdaq/nordic_itch_protocol.hh"
 #include "nasdaq/itch50_protocol.hh"
@@ -121,14 +121,16 @@ bool helix_session_is_rth_timestamp(helix_session_t session, helix_timestamp_t t
     return unwrap(session)->is_rth_timestamp(timestamp);
 }
 
-int helix_session_process_packet(helix_session_t session, const char* buf, size_t len)
+size_t helix_session_process_packet(helix_session_t session, const char* buf, size_t len)
 {
     try {
         return unwrap(session)->process_packet(helix::net::packet_view{buf, len});
     } catch (const helix::unknown_message_type& e) {
+      (void)e;
         return HELIX_ERROR_UNKNOWN_MESSAGE_TYPE;
     } catch (const helix::truncated_packet_error& e) {
-        return HELIX_ERROR_TRUNCATED_PACKET;
+      (void)e;
+      return HELIX_ERROR_TRUNCATED_PACKET;
     } catch (...) {
        return HELIX_ERROR_UNKNOWN;
     }
@@ -214,6 +216,7 @@ helix_trading_state_t helix_order_book_state(helix_order_book_t ob)
     case trading_state::quotation_only: return HELIX_TRADING_STATE_QUOTATION_ONLY;
     case trading_state::trading:        return HELIX_TRADING_STATE_TRADING;
     case trading_state::auction:        return HELIX_TRADING_STATE_AUCTION;
+    default:                            return HELIX_TRADING_STATE_UNKNOWN;
     }
 }
 
@@ -240,4 +243,6 @@ helix_trade_sign_t helix_trade_sign(helix_trade_t trade)
     case helix::trade_sign::crossing:         return HELIX_TRADE_SIGN_CROSSING;
     case helix::trade_sign::non_displayable:  return HELIX_TRADE_SIGN_NON_DISPLAYABLE;
     }
+    // TODO(): burada invalid bir sey donmeli
+    return static_cast<helix_trade_sign_t>(-1);
 }

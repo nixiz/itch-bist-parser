@@ -13,6 +13,13 @@ extern "C" {
 
 #define ITCH_SYMBOL_LEN 8
 
+#ifdef _WIN32
+#pragma pack(push,1)
+#define pack_attr
+#else
+#define pack_attr __attribute__((packed))
+#endif // WIN32
+
 struct itch50_message {
     char MessageType;
 };
@@ -23,7 +30,7 @@ struct itch50_system_event {
     uint16_t TrackingNumber;
     uint64_t Timestamp:48;
     char     EventCode;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_stock_directory {
     char     MessageType;
@@ -44,7 +51,7 @@ struct itch50_stock_directory {
     char     ETPFlag;
     uint32_t ETPLeverageFactor;
     char     InverseIndicator;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_stock_trading_action {
     char     MessageType;
@@ -55,7 +62,9 @@ struct itch50_stock_trading_action {
     char     TradingState;
     char     Reserved;
     char     Reason[4];
-} __attribute__ ((packed));
+} pack_attr;
+
+static_assert(sizeof(itch50_stock_trading_action) == 27, "structures must be packed");
 
 struct itch50_reg_sho_restriction {
     char     MessageType;
@@ -64,7 +73,7 @@ struct itch50_reg_sho_restriction {
     uint64_t Timestamp:48;
     char     Stock[8];
     char     RegSHOAction;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_market_participant_position {
     char     MessageType;
@@ -76,7 +85,7 @@ struct itch50_market_participant_position {
     char     PrimaryMarketMaker;
     char     MarketMakerMode;
     char     MarketParticipantState;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_mwcb_decline_level {
     char     MessageType;
@@ -86,7 +95,7 @@ struct itch50_mwcb_decline_level {
     uint64_t Level1;
     uint64_t Level2;
     uint64_t Level3;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_mwcb_breach {
     char     MessageType;
@@ -94,7 +103,7 @@ struct itch50_mwcb_breach {
     uint16_t TrackingNumber;
     uint64_t Timestamp:48;
     char     BeachedLevel;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_ipo_quoting_period_update {
     char     MessageType;
@@ -105,7 +114,7 @@ struct itch50_ipo_quoting_period_update {
     uint32_t IPOQuotationReleaseTime;
     char     IPOQuotationReleaseQualifier;
     uint32_t IPOPrice;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_add_order {
     char     MessageType;
@@ -117,7 +126,7 @@ struct itch50_add_order {
     uint32_t Shares;
     char     Stock[8];
     uint32_t Price;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_add_order_mpid {
     char     MessageType;
@@ -130,7 +139,7 @@ struct itch50_add_order_mpid {
     char     Stock[8];
     uint32_t Price;
     char     Attribution[4];
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_order_executed {
     char     MessageType;
@@ -140,7 +149,7 @@ struct itch50_order_executed {
     uint64_t OrderReferenceNumber;
     uint32_t ExecutedShares;
     uint64_t MatchNumber;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_order_executed_with_price {
     char     MessageType;
@@ -152,7 +161,7 @@ struct itch50_order_executed_with_price {
     uint64_t MatchNumber;
     char     Printable;
     uint32_t ExecutionPrice;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_order_cancel {
     char     MessageType;
@@ -161,7 +170,7 @@ struct itch50_order_cancel {
     uint64_t Timestamp:48;
     uint64_t OrderReferenceNumber;
     uint32_t CanceledShares;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_order_delete {
     char     MessageType;
@@ -169,7 +178,7 @@ struct itch50_order_delete {
     uint16_t TrackingNumber;
     uint64_t Timestamp:48;
     uint64_t OrderReferenceNumber;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_order_replace {
     char     MessageType;
@@ -180,7 +189,7 @@ struct itch50_order_replace {
     uint64_t NewOrderReferenceNumber;
     uint32_t Shares;
     uint32_t Price;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_trade {
     char     MessageType;
@@ -193,7 +202,7 @@ struct itch50_trade {
     char     Stock[8];
     uint32_t Price;
     uint64_t MatchNumber;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_cross_trade {
     char     MessageType;
@@ -205,7 +214,7 @@ struct itch50_cross_trade {
     uint32_t CrossPrice;
     uint64_t MatchNumber;
     char     CrossType;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_broken_trade {
     char     MessageType;
@@ -213,7 +222,7 @@ struct itch50_broken_trade {
     uint16_t TrackingNumber;
     uint64_t Timestamp:48;
     uint64_t MatchNumber;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_noii {
     char     MessageType;
@@ -229,7 +238,7 @@ struct itch50_noii {
     uint32_t CurrentReferencePrice;
     char     CrossType;
     char     PriceVariationIndicator;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct itch50_rpii {
     char     MessageType;
@@ -238,10 +247,27 @@ struct itch50_rpii {
     uint64_t Timestamp:48;
     char     Stock[8];
     char     InterestFlag;
-} __attribute__ ((packed));
+} pack_attr;
+
+#ifdef _WIN32
+#pragma pack(pop)
+#endif // WIN32
+
 
 #ifdef __cplusplus
 }
 #endif
+
+struct itch50_stock_trading_action_aligned {
+  char     MessageType;
+  uint16_t StockLocate;
+  uint16_t TrackingNumber;
+  uint64_t Timestamp : 48;
+  char     Stock[8];
+  char     TradingState;
+  char     Reserved;
+  char     Reason[4];
+};
+static_assert(sizeof(itch50_stock_trading_action_aligned) != sizeof(itch50_stock_trading_action), "structures must be packed");
 
 #endif

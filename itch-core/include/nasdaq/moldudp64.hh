@@ -16,7 +16,7 @@
 #include "helix.hh"
 #include "net.hh"
 
-#include <experimental/optional>
+#include <optional>
 
 namespace helix {
 
@@ -33,7 +33,7 @@ class moldudp64_session : public session {
     send_callback _send_cb;
     uint64_t _expected_seq_no = 1;
     moldudp64_state _state = moldudp64_state::synchronized;
-    std::experimental::optional<uint64_t> _sync_to_seq_no;
+    std::optional<uint64_t> _sync_to_seq_no;
 public:
     explicit moldudp64_session(void *data);
 
@@ -116,7 +116,7 @@ size_t moldudp64_session<Handler>::process_packet(const net::packet_view& packet
     if (_state == moldudp64_state::gap_fill) {
         if (_expected_seq_no >= *_sync_to_seq_no) {
             _state = moldudp64_state::synchronized;
-            _sync_to_seq_no = std::experimental::nullopt;
+            _sync_to_seq_no = std::nullopt;
         } else {
             retransmit_request(recv_seq_no, _expected_seq_no);
         }
@@ -130,11 +130,12 @@ void moldudp64_session<Handler>::retransmit_request(uint64_t seq_no, uint64_t ex
     if (!bool(_send_cb)) {
          throw std::runtime_error(std::string("invalid sequence number: ") + std::to_string(seq_no) + ", expected: " + std::to_string(expected_seq_no));
     }
-    uint64_t message_count = 0xfffe;
+    //uint64_t message_count = 0xfffe;
 
     moldudp64_request_packet request_packet;
     request_packet.SequenceNumber = htobe64(expected_seq_no);
-    request_packet.MessageCount = htobe16(message_count);
+    //request_packet.MessageCount = htobe16(message_count);
+    request_packet.MessageCount = 0xfffe;
 
     char *base = reinterpret_cast<char*>(&request_packet);
     size_t len = sizeof(request_packet);

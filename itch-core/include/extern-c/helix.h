@@ -292,7 +292,7 @@ bool helix_session_is_rth_timestamp(helix_session_t, helix_timestamp_t);
  *
  * This function is called by the packet I/O code to process raw packet data.
  */
-int helix_session_process_packet(helix_session_t, const char* buf, size_t len);
+size_t helix_session_process_packet(helix_session_t, const char* buf, size_t len);
 
 /*!
  * @abstract Subscribe to listening to market data updates for a symbol.

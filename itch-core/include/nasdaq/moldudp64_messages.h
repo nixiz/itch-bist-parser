@@ -18,21 +18,32 @@ extern "C" {
 
 #include <stdint.h>
 
+#ifdef _WIN32
+#pragma pack(push,1)
+#define pack_attr
+#else
+#define pack_attr __attribute__((packed))
+#endif // WIN32
+
 struct moldudp64_header {
     char     Session[10];
     uint64_t SequenceNumber;
     uint16_t MessageCount;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct moldudp64_message_block {
     uint16_t MessageLength;
-} __attribute__ ((packed));
+} pack_attr;
 
 struct moldudp64_request_packet {
     char     Session[10];
     uint64_t SequenceNumber;
     uint16_t MessageCount;
-} __attribute__ ((packed));
+} pack_attr;
+
+#ifdef _WIN32
+#pragma pack(pop)
+#endif // WIN32
 
 #ifdef __cplusplus
 }
