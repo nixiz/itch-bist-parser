@@ -30,10 +30,11 @@ extern "C" {
 #endif
 
 #else
+#include <stdlib.h>
 
-#define be16toh(x) (x)
-#define be32toh(x) (x)
-#define be64toh(x) (x)
+#define be16toh(x) _byteswap_ushort(x)
+#define be32toh(x) _byteswap_ulong(x)
+#define be64toh(x) _byteswap_uint64(x)
 #define htobe16(x) (x)
 #define htobe32(x) (x)
 #define htobe64(x) (x)

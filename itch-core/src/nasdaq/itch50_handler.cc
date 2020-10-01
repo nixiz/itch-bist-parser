@@ -88,7 +88,7 @@ size_t itch50_handler::process_packet(const net::packet_view& packet)
     case 'B': return process_msg<itch50_broken_trade>(packet);
     case 'I': return process_msg<itch50_noii>(packet);
     case 'N': return process_msg<itch50_rpii>(packet);
-    default:  throw unknown_message_type("unknown type: " + std::string(1, msg->MessageType));
+    default: throw unknown_message_type("unknown type: " + std::string(1, msg->MessageType));
     }
 }
 

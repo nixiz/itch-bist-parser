@@ -127,12 +127,12 @@ size_t helix_session_process_packet(helix_session_t session, const char* buf, si
         return unwrap(session)->process_packet(helix::net::packet_view{buf, len});
     } catch (const helix::unknown_message_type& e) {
       (void)e;
-        return HELIX_ERROR_UNKNOWN_MESSAGE_TYPE;
+      return HELIX_ERROR_UNKNOWN_MESSAGE_TYPE;
     } catch (const helix::truncated_packet_error& e) {
       (void)e;
       return HELIX_ERROR_TRUNCATED_PACKET;
     } catch (...) {
-       return HELIX_ERROR_UNKNOWN;
+      return HELIX_ERROR_UNKNOWN;
     }
 }
 

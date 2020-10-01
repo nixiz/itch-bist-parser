@@ -391,11 +391,15 @@ int main(int argc, char* argv[])
 			int nr;
 
 			nr = helix_session_process_packet(session, p, size);
-			if (!nr)
-				break;
 			if (nr < 0) {
 				fprintf(stderr, "error: %s: %s\n", cfg.input.c_str(), helix_strerror(nr));
-				exit(1);
+				if constexpr (true) {
+					nr = size;
+				}
+				else
+				{
+					exit(1);
+				}
 			}
 			p += nr;
 			size -= nr;
