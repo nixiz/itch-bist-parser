@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\nasdaq">
+      <UniqueIdentifier>{cb02f086-389f-4eab-8ed3-1a0821dca0de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\parity">
+      <UniqueIdentifier>{4dbd031d-8ea8-4ff7-8b82-ced6816705d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\compat">
+      <UniqueIdentifier>{cf4502cf-44bc-4b30-a8fa-7e332b4449e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\nasdaq">
+      <UniqueIdentifier>{55d007b5-3b2f-4e75-8cc8-98442e6d3ac3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\parity">
+      <UniqueIdentifier>{da9bcfc1-a883-43e3-ac03-f5bd4326f857}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\event.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\helix.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\order_book.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nasdaq\itch50_handler.cc">
+      <Filter>Source Files\nasdaq</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nasdaq\itch50_protocol.cc">
+      <Filter>Source Files\nasdaq</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nasdaq\nordic_itch_handler.cc">
+      <Filter>Source Files\nasdaq</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nasdaq\nordic_itch_protocol.cc">
+      <Filter>Source Files\nasdaq</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parity\pmd_handler.cc">
+      <Filter>Source Files\parity</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parity\pmd_protocol.cc">
+      <Filter>Source Files\parity</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\helix\nasdaq\binaryfile.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\itch50_handler.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\itch50_messages.h">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\itch50_protocol.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\moldudp.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\moldudp_messages.h">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\moldudp64.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\moldudp64_messages.h">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\nordic_itch_handler.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\nordic_itch_messages.h">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\nordic_itch_protocol.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\nasdaq\soupfile.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\compat\endian.h">
+      <Filter>Header Files\compat</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\parity\pmd_handler.hh">
+      <Filter>Header Files\parity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\parity\pmd_messages.h">
+      <Filter>Header Files\parity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\parity\pmd_protocol.hh">
+      <Filter>Header Files\parity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\helix.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\net.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helix\order_book.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
