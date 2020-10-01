@@ -2,6 +2,7 @@
 
 #include "nasdaq/nordic_itch_protocol.hh"
 #include "nasdaq/itch50_protocol.hh"
+#include "nasdaq/itch_bist_protocol.hh"
 #include "parity/pmd_protocol.hh"
 #include "net.hh"
 
@@ -75,6 +76,9 @@ helix_protocol_t helix_protocol_lookup(const char *name)
     }
     if (helix::parity::pmd_protocol::supports(name)) {
         return wrap(new helix::parity::pmd_protocol{name});
+    }
+    if (helix::nasdaq::itch_bist_protocol::supports(name)) {
+      return wrap(new helix::nasdaq::itch_bist_protocol{ name });
     }
     return NULL;
 }

@@ -93,6 +93,15 @@
     <ClInclude Include="include\extern-c\helix.h">
       <Filter>Header Files\extern-c</Filter>
     </ClInclude>
+    <ClInclude Include="include\nasdaq\itch_bist_handler.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nasdaq\itch_bist_messages.h">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nasdaq\itch_bist_protocol.hh">
+      <Filter>Header Files\nasdaq</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\nasdaq\itch50_handler.cc">
@@ -121,6 +130,12 @@
     </ClCompile>
     <ClCompile Include="src\order_book.cc">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nasdaq\itch_bist_handler.cc">
+      <Filter>Source Files\nasdaq</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nasdaq\itch_bist_protocol.cc">
+      <Filter>Source Files\nasdaq</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

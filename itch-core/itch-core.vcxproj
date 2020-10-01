@@ -163,6 +163,9 @@
     <ClInclude Include="include\nasdaq\itch50_handler.hh" />
     <ClInclude Include="include\nasdaq\itch50_messages.h" />
     <ClInclude Include="include\nasdaq\itch50_protocol.hh" />
+    <ClInclude Include="include\nasdaq\itch_bist_handler.hh" />
+    <ClInclude Include="include\nasdaq\itch_bist_messages.h" />
+    <ClInclude Include="include\nasdaq\itch_bist_protocol.hh" />
     <ClInclude Include="include\nasdaq\moldudp.hh" />
     <ClInclude Include="include\nasdaq\moldudp64.hh" />
     <ClInclude Include="include\nasdaq\moldudp64_messages.h" />
@@ -182,6 +185,8 @@
     <ClCompile Include="src\helix.cc" />
     <ClCompile Include="src\nasdaq\itch50_handler.cc" />
     <ClCompile Include="src\nasdaq\itch50_protocol.cc" />
+    <ClCompile Include="src\nasdaq\itch_bist_handler.cc" />
+    <ClCompile Include="src\nasdaq\itch_bist_protocol.cc" />
     <ClCompile Include="src\nasdaq\nordic_itch_handler.cc" />
     <ClCompile Include="src\nasdaq\nordic_itch_protocol.cc" />
     <ClCompile Include="src\order_book.cc" />

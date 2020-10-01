@@ -354,7 +354,7 @@ int main(int argc, char* argv[])
 	fmt_ops.reset(new fmt_pretty_ops);
 	fmt_ops->init(cfg.output);
 
-	cfg.proto = "nasdaq-binaryfile-itch50";
+	cfg.proto = "nasdaq-binaryfile-itch-bist";
 	proto = helix_protocol_lookup(cfg.proto.c_str());
 	if (!proto) {
 		fprintf(stderr, "error: protocol '%s' is not supported\n", cfg.proto.c_str());
@@ -393,13 +393,7 @@ int main(int argc, char* argv[])
 			nr = helix_session_process_packet(session, p, size);
 			if (nr < 0) {
 				fprintf(stderr, "error: %s: %s\n", cfg.input.c_str(), helix_strerror(nr));
-				if constexpr (true) {
-					nr = size;
-				}
-				else
-				{
-					exit(1);
-				}
+				exit(1);
 			}
 			p += nr;
 			size -= nr;
