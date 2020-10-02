@@ -94,9 +94,13 @@ typedef enum {
     /*! Order book update. */
     HELIX_EVENT_ORDER_BOOK_UPDATE = 1UL << 0,
     /*! Trade. */
-    HELIX_EVENT_TRADE = 1UL << 1,
+    HELIX_EVENT_TRADE  = 1UL << 1,
     /*! Top of book price level sweep. */
-    HELIX_EVENT_SWEEP = 1UL << 2,
+    HELIX_EVENT_SWEEP  = 1UL << 2,
+    /*! Bist opened */
+    HELIX_EVENT_OPENED = 1UL << 3,
+    /*! Bist closed */
+    HELIX_EVENT_CLOSED = 1UL << 4,
 } helix_event_mask_t;
 
 /*!

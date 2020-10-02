@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <set>
+#include <chrono>
 
 namespace helix {
 
@@ -36,6 +37,8 @@ private:
     std::set<std::string> _symbols;
     //! A map of pre-allocation size by symbol.
     std::unordered_map<std::string, size_t> _symbol_max_orders;
+    //! Working utc time seconds. nanoseconds will be padded on all other messages
+    std::chrono::seconds time_secs {0};
 public:
     itch_bist_handler();
     bool is_rth_timestamp(uint64_t timestamp) const;
@@ -61,6 +64,8 @@ private:
     void process_msg(const itch_bist_equilibrium_price_update* m);
     //! Generate a sweep event if execution cleared a price level.
     event_mask sweep_event(const execution&) const;
+    //! Generate timestamp with nanoseconds
+    uint64_t itch_bist_timestamp(uint64_t raw_timestamp);
 };
 
 }

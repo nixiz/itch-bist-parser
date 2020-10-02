@@ -39,6 +39,35 @@ extern "C" {
 #define htobe32(x) (x)
 #define htobe64(x) (x)
 
+//template <class in_t>
+//[[nodiscard]] inline in_t swap_bytes(in_t&& in) {
+//  return std::forward<in_t>(in);
+//}
+
+[[nodiscard]] inline uint16_t swap_bytes(uint16_t in) {
+  return _byteswap_ushort(in);
+}
+
+[[nodiscard]] inline int16_t swap_bytes(int16_t in) {
+  return static_cast<int16_t>(swap_bytes(*reinterpret_cast<uint16_t*>(&in)));
+}
+
+[[nodiscard]] inline uint32_t swap_bytes(uint32_t in) {
+  return _byteswap_ulong(in);
+}
+
+[[nodiscard]] inline int32_t swap_bytes(int32_t in) {
+  return static_cast<int32_t>(swap_bytes(*reinterpret_cast<uint32_t*>(&in)));
+}
+
+[[nodiscard]] inline uint64_t swap_bytes(uint64_t in) {
+  return _byteswap_uint64(in);
+}
+
+[[nodiscard]] inline int64_t swap_bytes(int64_t in) {
+  return static_cast<int64_t>(swap_bytes(*reinterpret_cast<uint64_t*>(&in)));
+}
+
 #endif
 
 #endif

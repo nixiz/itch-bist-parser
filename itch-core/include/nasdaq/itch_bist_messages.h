@@ -11,24 +11,13 @@ extern "C" {
 
 #include <stdint.h>
 
-#define ITCH_SYMBOL_LEN 8
-
 #ifdef _WIN32
 #pragma pack(push,1)
 #define pack_attr
 #else
 #define pack_attr __attribute__((packed))
 #endif // WIN32
-
-/*
-struct copy_this {
-  char        MessageType; // "?"
-  uint32_t    TimestampNanoseconds;
-  uint32_t    OrderBookID; // Expired Order book IDs may be reused for new instruments
-} pack_attr;
-static_assert(sizeof(copy_this) == 18,
-              "copy_this size must be 18 byte as defined in standart!");
-*/
+#define ITCH_SYMBOL_LEN 8
 
 struct itch_bist_message {
     char MessageType;
@@ -151,11 +140,12 @@ struct itch_bist_order_book_state {
 static_assert(sizeof(itch_bist_order_book_state) == 29,
               "itch_bist_order_book_state size must be 29 byte as defined in standart!");
 
-enum class buy_sell_e : int8_t
-{
-  Buy = 'B',
-  Sell = 'S'
-};
+typedef char buy_sell_e;
+//enum class buy_sell_e : int8_t
+//{
+//  Buy = 'B',
+//  Sell = 'S'
+//};
 
 struct itch_bist_add_order {
   char       MessageType; // "A"
@@ -286,5 +276,14 @@ static_assert(sizeof(itch_bist_equilibrium_price_update) == 53,
 #ifdef __cplusplus
 }
 #endif
+
+template <class msg_t>
+constexpr static const bool should_process = false;
+
+template <>
+constexpr static const bool should_process<itch_bist_seconds> = true;
+
+
+
 
 #endif

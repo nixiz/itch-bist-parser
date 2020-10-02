@@ -107,6 +107,7 @@ class order_book {
     using iterator = order_set::iterator;
 
     std::string _symbol;
+    std::string _state_name;
     uint64_t _timestamp;
     trading_state _state;
     order_set _orders;
@@ -133,6 +134,14 @@ public:
 
     trading_state state() const {
         return _state;
+    }
+
+    void set_state_name(std::string state_name) {
+      _state_name = std::move(state_name);
+    }
+
+    std::string_view state_name() const {
+      return _state_name;
     }
 
     void add(order order);

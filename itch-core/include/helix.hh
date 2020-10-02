@@ -65,6 +65,8 @@ enum {
     ev_order_book_update = 1UL << 0,
     ev_trade             = 1UL << 1,
     ev_sweep             = 1UL << 2,
+    ev_opened            = 1UL << 3,
+    ev_closed            = 1UL << 4,
 };
 
 class event {
@@ -74,7 +76,7 @@ class event {
     order_book* _ob;
     trade*      _trade;
 public:
-    event(event_mask mask, const std::string& symbol, uint64_t timestamp, order_book* ob, trade*);
+    event(event_mask mask, std::string symbol, uint64_t timestamp, order_book* ob, trade*);
     event_mask get_mask() const;
     const std::string& get_symbol() const;
     uint64_t get_timestamp() const;
@@ -83,6 +85,7 @@ public:
 };
 
 event make_event(const std::string& symbol, uint64_t timestamp, order_book*, trade*, event_mask mask = 0);
+event make_sys_event(uint64_t timestamp, event_mask mask = 0);
 event make_ob_event(const std::string& symbol, uint64_t timestamp, order_book*, event_mask mask = 0);
 event make_trade_event(const std::string& symbol, uint64_t timestamp, trade*, event_mask mask = 0);
 

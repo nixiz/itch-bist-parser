@@ -296,6 +296,10 @@ static void process_event(helix_session_t session, helix_event_t event)
 {
 	helix_event_mask_t mask = helix_event_mask(event);
 
+	if (mask & HELIX_EVENT_OPENED || mask & HELIX_EVENT_CLOSED) {
+		// TODO(): do whatever when bist opened or closed!
+		puts("bist opened/closed event consumed.");
+	}
 	if (mask & HELIX_EVENT_ORDER_BOOK_UPDATE) {
 		helix_order_book_t ob = helix_event_order_book(event);
 		process_ob_event(session, ob, mask);
@@ -350,7 +354,7 @@ int main(int argc, char* argv[])
 	trace_session ts;
 	std::ifstream input_fd;
 
-	cfg.output = "result.out";
+	cfg.output = argv[2];
 	fmt_ops.reset(new fmt_pretty_ops);
 	fmt_ops->init(cfg.output);
 

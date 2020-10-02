@@ -69,7 +69,8 @@ void binaryfile_session<Handler>::set_send_callback(send_callback send_cb)
 template<typename Handler>
 size_t binaryfile_session<Handler>::process_packet(const net::packet_view& packet)
 {
-    uint16_t payload_len = be16toh(*packet.cast<uint16_t>());
+    //uint16_t payload_len = be16toh(*packet.cast<uint16_t>());
+    uint16_t payload_len = swap_bytes(*packet.cast<uint16_t>());
     if (!payload_len) {
         // End of session.
         return 0;
