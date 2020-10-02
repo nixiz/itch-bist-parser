@@ -68,26 +68,20 @@ size_t itch_bist_handler::process_packet(const net::packet_view& packet)
 {
     auto* msg = packet.cast<itch_bist_message>();
     switch (msg->MessageType) {
+    case 'T': return process_msg<itch_bist_seconds>(packet);
+    case 'R': return process_msg<itch_bist_order_book_directory>(packet);
+    case 'M': return process_msg<itch_bist_combination_order_book_leg>(packet);
+    case 'L': return process_msg<itch_bist_tick_size_table_entry>(packet);
     case 'S': return process_msg<itch_bist_system_event>(packet);
-    case 'R': return process_msg<itch_bist_stock_directory>(packet);
-    case 'H': return process_msg<itch_bist_stock_trading_action>(packet);
-    case 'Y': return process_msg<itch_bist_reg_sho_restriction>(packet);
-    case 'L': return process_msg<itch_bist_market_participant_position>(packet);
-    case 'V': return process_msg<itch_bist_mwcb_decline_level>(packet);
-    case 'W': return process_msg<itch_bist_mwcb_breach>(packet);
-    case 'K': return process_msg<itch_bist_ipo_quoting_period_update>(packet);
+    case 'O': return process_msg<itch_bist_order_book_state>(packet);
     case 'A': return process_msg<itch_bist_add_order>(packet);
     case 'F': return process_msg<itch_bist_add_order_mpid>(packet);
     case 'E': return process_msg<itch_bist_order_executed>(packet);
     case 'C': return process_msg<itch_bist_order_executed_with_price>(packet);
-    case 'X': return process_msg<itch_bist_order_cancel>(packet);
-    case 'D': return process_msg<itch_bist_order_delete>(packet);
     case 'U': return process_msg<itch_bist_order_replace>(packet);
+    case 'D': return process_msg<itch_bist_order_delete>(packet);
     case 'P': return process_msg<itch_bist_trade>(packet);
-    case 'Q': return process_msg<itch_bist_cross_trade>(packet);
-    case 'B': return process_msg<itch_bist_broken_trade>(packet);
-    case 'I': return process_msg<itch_bist_noii>(packet);
-    case 'N': return process_msg<itch_bist_rpii>(packet);
+    case 'Z': return process_msg<itch_bist_equilibrium_price_update>(packet);
     default: throw unknown_message_type("unknown type: " + std::string(1, msg->MessageType));
     }
 }
@@ -95,23 +89,165 @@ size_t itch_bist_handler::process_packet(const net::packet_view& packet)
 template<typename T>
 size_t itch_bist_handler::process_msg(const net::packet_view& packet)
 {
-    process_msg(packet.cast<T>());
-    return sizeof(T);
+  // TODO(oguzhank): consider to return size of T through some trait helper like:
+  //                 itch_bist_msg_traits<T>::packet_size;
+  // Bu sayede hangi mesajin islenip islenmeyecegi, ne yapmasi gerektigi falan da
+  // trait ozellikleri ile belirtilebilir!
+  // if constexpr (itch_bist_msg_traits<T>::should_process) { process_msg(..); }
+  process_msg(packet.cast<T>());
+  return sizeof(T);
+}
+
+void itch_bist_handler::process_msg(const itch_bist_seconds* m)
+{
+  // timestamp second updates here.
+}
+
+void itch_bist_handler::process_msg(const itch_bist_order_book_directory* m)
+{
+    //std::string sym{m->Stock, ITCH_SYMBOL_LEN};
+    //if (_symbols.count(sym) > 0) {
+    //    order_book ob{sym, itch_bist_timestamp(m->Timestamp), _symbol_max_orders.at(sym)};
+    //    order_book_id_map.insert({m->StockLocate, std::move(ob)});
+    //}
+}
+
+void itch_bist_handler::process_msg(const itch_bist_combination_order_book_leg* m)
+{
+}
+
+void itch_bist_handler::process_msg(const itch_bist_tick_size_table_entry* m)
+{
 }
 
 void itch_bist_handler::process_msg(const itch_bist_system_event* m)
 {
 }
 
-void itch_bist_handler::process_msg(const itch_bist_stock_directory* m)
+void itch_bist_handler::process_msg(const itch_bist_order_book_state* m)
 {
-    std::string sym{m->Stock, ITCH_SYMBOL_LEN};
-    if (_symbols.count(sym) > 0) {
-        order_book ob{sym, itch_bist_timestamp(m->Timestamp), _symbol_max_orders.at(sym)};
-        order_book_id_map.insert({m->StockLocate, std::move(ob)});
-    }
 }
 
+void itch_bist_handler::process_msg(const itch_bist_add_order* m)
+{
+  //auto it = order_book_id_map.find(m->StockLocate);
+  //if (it != order_book_id_map.end()) {
+  //  auto& ob = it->second;
+
+  //  uint64_t order_id = m->OrderReferenceNumber;
+  //  uint64_t price = be32toh(m->Price);
+  //  uint32_t quantity = be32toh(m->Shares);
+  //  auto     side = itch_bist_side(m->BuySellIndicator);
+  //  uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
+  //  order o{ order_id, price, quantity, side, timestamp };
+  //  ob.add(std::move(o));
+  //  ob.set_timestamp(timestamp);
+  //  _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
+  //}
+}
+
+void itch_bist_handler::process_msg(const itch_bist_add_order_mpid* m)
+{
+  //auto it = order_book_id_map.find(m->StockLocate);
+  //if (it != order_book_id_map.end()) {
+  //  auto& ob = it->second;
+
+  //  uint64_t order_id = m->OrderReferenceNumber;
+  //  uint64_t price = be32toh(m->Price);
+  //  uint32_t quantity = be32toh(m->Shares);
+  //  auto     side = itch_bist_side(m->BuySellIndicator);
+  //  uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
+  //  order o{ order_id, price, quantity, side, timestamp };
+  //  ob.add(std::move(o));
+  //  ob.set_timestamp(timestamp);
+  //  _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
+  //}
+}
+
+void itch_bist_handler::process_msg(const itch_bist_order_executed* m)
+{
+  //auto it = order_book_id_map.find(m->StockLocate);
+  //if (it != order_book_id_map.end()) {
+  //  uint64_t quantity = be32toh(m->ExecutedShares);
+  //  uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
+  //  auto& ob = it->second;
+  //  auto result = ob.execute(m->OrderReferenceNumber, quantity);
+  //  ob.set_timestamp(timestamp);
+  //  trade t{ timestamp, result.price, quantity, itch_bist_trade_sign(result.side) };
+  //  _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
+  //}
+}
+
+void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m)
+{
+  //auto it = order_book_id_map.find(m->StockLocate);
+  //if (it != order_book_id_map.end()) {
+  //  uint64_t quantity = be32toh(m->ExecutedShares);
+  //  uint64_t price = be32toh(m->ExecutionPrice);
+  //  uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
+  //  auto& ob = it->second;
+  //  auto result = ob.execute(m->OrderReferenceNumber, quantity);
+  //  ob.set_timestamp(timestamp);
+  //  trade t{ timestamp, price, quantity, itch_bist_trade_sign(result.side) };
+  //  _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
+  //}
+}
+
+void itch_bist_handler::process_msg(const itch_bist_order_replace* m)
+{
+  //auto it = order_book_id_map.find(m->StockLocate);
+  //if (it != order_book_id_map.end()) {
+  //  auto& ob = it->second;
+  //  auto side = ob.side(m->OriginalOrderReferenceNumber);
+  //  uint64_t order_id = m->NewOrderReferenceNumber;
+  //  uint64_t price = be32toh(m->Price);
+  //  uint32_t quantity = be32toh(m->Shares);
+  //  uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
+  //  order o{ order_id, price, quantity, side, timestamp };
+  //  ob.replace(m->OriginalOrderReferenceNumber, std::move(o));
+  //  ob.set_timestamp(timestamp);
+  //  _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
+  //}
+}
+
+void itch_bist_handler::process_msg(const itch_bist_order_delete* m)
+{
+  //auto it = order_book_id_map.find(m->StockLocate);
+  //if (it != order_book_id_map.end()) {
+  //  auto& ob = it->second;
+  //  ob.remove(m->OrderReferenceNumber);
+  //  auto timestamp = itch_bist_timestamp(m->Timestamp);
+  //  ob.set_timestamp(timestamp);
+  //  _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
+  //}
+}
+
+void itch_bist_handler::process_msg(const itch_bist_trade* m)
+{
+  //auto it = order_book_id_map.find(m->StockLocate);
+  //if (it != order_book_id_map.end()) {
+  //  uint64_t trade_price = be32toh(m->Price);
+  //  uint32_t quantity = be32toh(m->Shares);
+  //  auto& ob = it->second;
+  //  auto timestamp = itch_bist_timestamp(m->Timestamp);
+  //  trade t{ timestamp, trade_price, quantity, trade_sign::non_displayable };
+  //  _process_event(make_trade_event(ob.symbol(), timestamp, &t));
+  //}
+}
+
+void itch_bist_handler::process_msg(const itch_bist_equilibrium_price_update* m)
+{
+}
+
+event_mask itch_bist_handler::sweep_event(const execution& e) const
+{
+  if (e.remaining > 0) {
+    return 0;
+  }
+  return ev_sweep;
+}
+
+#if 0
 void itch_bist_handler::process_msg(const itch_bist_stock_trading_action* m)
 {
     auto it = order_book_id_map.find(m->StockLocate);
@@ -132,9 +268,6 @@ void itch_bist_handler::process_msg(const itch_bist_reg_sho_restriction* m)
 {
 }
 
-void itch_bist_handler::process_msg(const itch_bist_market_participant_position* m)
-{
-}
 
 void itch_bist_handler::process_msg(const itch_bist_mwcb_decline_level* m)
 {
@@ -148,71 +281,6 @@ void itch_bist_handler::process_msg(const itch_bist_ipo_quoting_period_update* m
 {
 }
 
-void itch_bist_handler::process_msg(const itch_bist_add_order* m)
-{
-    auto it = order_book_id_map.find(m->StockLocate);
-    if (it != order_book_id_map.end()) {
-        auto& ob = it->second;
-
-        uint64_t order_id = m->OrderReferenceNumber;
-        uint64_t price    = be32toh(m->Price);
-        uint32_t quantity = be32toh(m->Shares);
-        auto     side     = itch_bist_side(m->BuySellIndicator);
-        uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
-        order o{order_id, price, quantity, side, timestamp};
-        ob.add(std::move(o));
-        ob.set_timestamp(timestamp);
-        _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
-    }
-}
-
-void itch_bist_handler::process_msg(const itch_bist_add_order_mpid* m)
-{
-    auto it = order_book_id_map.find(m->StockLocate);
-    if (it != order_book_id_map.end()) {
-        auto& ob = it->second;
-
-        uint64_t order_id = m->OrderReferenceNumber;
-        uint64_t price    = be32toh(m->Price);
-        uint32_t quantity = be32toh(m->Shares);
-        auto     side     = itch_bist_side(m->BuySellIndicator);
-        uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
-        order o{order_id, price, quantity, side, timestamp};
-        ob.add(std::move(o));
-        ob.set_timestamp(timestamp);
-        _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
-    }
-}
-
-void itch_bist_handler::process_msg(const itch_bist_order_executed* m)
-{
-    auto it = order_book_id_map.find(m->StockLocate);
-    if (it != order_book_id_map.end()) {
-        uint64_t quantity = be32toh(m->ExecutedShares);
-        uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
-        auto& ob = it->second;
-        auto result = ob.execute(m->OrderReferenceNumber, quantity);
-        ob.set_timestamp(timestamp);
-        trade t{timestamp, result.price, quantity, itch_bist_trade_sign(result.side)};
-        _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
-    }
-}
-
-void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m)
-{
-    auto it = order_book_id_map.find(m->StockLocate);
-    if (it != order_book_id_map.end()) {
-        uint64_t quantity = be32toh(m->ExecutedShares);
-        uint64_t price = be32toh(m->ExecutionPrice);
-        uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
-        auto& ob = it->second;
-        auto result = ob.execute(m->OrderReferenceNumber, quantity);
-        ob.set_timestamp(timestamp);
-        trade t{timestamp, price, quantity, itch_bist_trade_sign(result.side)};
-        _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
-    }
-}
-
 void itch_bist_handler::process_msg(const itch_bist_order_cancel* m)
 {
     auto it = order_book_id_map.find(m->StockLocate);
@@ -222,48 +290,6 @@ void itch_bist_handler::process_msg(const itch_bist_order_cancel* m)
         auto timestamp = itch_bist_timestamp(m->Timestamp);
         ob.set_timestamp(timestamp);
         _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
-    }
-}
-
-void itch_bist_handler::process_msg(const itch_bist_order_delete* m)
-{
-    auto it = order_book_id_map.find(m->StockLocate);
-    if (it != order_book_id_map.end()) {
-        auto& ob = it->second;
-        ob.remove(m->OrderReferenceNumber);
-        auto timestamp = itch_bist_timestamp(m->Timestamp);
-        ob.set_timestamp(timestamp);
-        _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
-    }
-}
-
-void itch_bist_handler::process_msg(const itch_bist_order_replace* m)
-{
-    auto it = order_book_id_map.find(m->StockLocate);
-    if (it != order_book_id_map.end()) {
-        auto& ob = it->second;
-        auto side = ob.side(m->OriginalOrderReferenceNumber);
-        uint64_t order_id = m->NewOrderReferenceNumber;
-        uint64_t price    = be32toh(m->Price);
-        uint32_t quantity = be32toh(m->Shares);
-        uint64_t timestamp = itch_bist_timestamp(m->Timestamp);
-        order o{order_id, price, quantity, side, timestamp};
-        ob.replace(m->OriginalOrderReferenceNumber, std::move(o));
-        ob.set_timestamp(timestamp);
-        _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
-    }
-}
-
-void itch_bist_handler::process_msg(const itch_bist_trade* m)
-{
-    auto it = order_book_id_map.find(m->StockLocate);
-    if (it != order_book_id_map.end()) {
-        uint64_t trade_price = be32toh(m->Price);
-        uint32_t quantity = be32toh(m->Shares);
-        auto& ob = it->second;
-        auto timestamp = itch_bist_timestamp(m->Timestamp);
-        trade t{timestamp, trade_price, quantity, trade_sign::non_displayable};
-        _process_event(make_trade_event(ob.symbol(), timestamp, &t));
     }
 }
 
@@ -292,14 +318,7 @@ void itch_bist_handler::process_msg(const itch_bist_rpii* m)
 {
 }
 
-event_mask itch_bist_handler::sweep_event(const execution& e) const
-{
-    if (e.remaining > 0) {
-        return 0;
-    }
-    return ev_sweep;
-}
+#endif
 
-}
-
-}
+} // namespace nasdaq
+} // namespace helix

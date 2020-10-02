@@ -45,26 +45,20 @@ public:
 private:
     template<typename T>
     size_t process_msg(const net::packet_view& packet);
+    void process_msg(const itch_bist_seconds* m);
+    void process_msg(const itch_bist_order_book_directory* m);
+    void process_msg(const itch_bist_combination_order_book_leg* m);
+    void process_msg(const itch_bist_tick_size_table_entry* m);
     void process_msg(const itch_bist_system_event* m);
-    void process_msg(const itch_bist_stock_directory* m);
-    void process_msg(const itch_bist_stock_trading_action* m);
-    void process_msg(const itch_bist_reg_sho_restriction* m);
-    void process_msg(const itch_bist_market_participant_position* m);
-    void process_msg(const itch_bist_mwcb_decline_level* m);
-    void process_msg(const itch_bist_mwcb_breach* m);
-    void process_msg(const itch_bist_ipo_quoting_period_update* m);
+    void process_msg(const itch_bist_order_book_state* m);
     void process_msg(const itch_bist_add_order* m);
     void process_msg(const itch_bist_add_order_mpid* m);
     void process_msg(const itch_bist_order_executed* m);
     void process_msg(const itch_bist_order_executed_with_price* m);
-    void process_msg(const itch_bist_order_cancel* m);
-    void process_msg(const itch_bist_order_delete* m);
     void process_msg(const itch_bist_order_replace* m);
+    void process_msg(const itch_bist_order_delete* m);
     void process_msg(const itch_bist_trade* m);
-    void process_msg(const itch_bist_cross_trade* m);
-    void process_msg(const itch_bist_broken_trade* m);
-    void process_msg(const itch_bist_noii* m);
-    void process_msg(const itch_bist_rpii* m);
+    void process_msg(const itch_bist_equilibrium_price_update* m);
     //! Generate a sweep event if execution cleared a price level.
     event_mask sweep_event(const execution&) const;
 };

@@ -367,7 +367,8 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	cfg.symbols = { "AKBNK", "GRANB" };
+	cfg.symbols = { "AKBNK.E", "GARAN.E" };
+	cfg.max_orders = 10;
 	for (auto&& symbol : cfg.symbols) {
 		helix_session_subscribe(session, symbol.c_str(), cfg.max_orders);
 	}
