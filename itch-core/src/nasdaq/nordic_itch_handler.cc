@@ -254,7 +254,7 @@ void nordic_itch_handler::process_msg(const itch_trade* m)
         uint64_t quantity = itch_uatoi(m->Quantity, sizeof(m->Quantity));
         auto& ob = it->second;
         trade t{timestamp(), trade_price, quantity, trade_sign::non_displayable};
-        _process_event(make_trade_event(ob.symbol(), timestamp(), &t));
+        _process_event(make_trade_event(ob.symbol(), timestamp(), &ob, &t));
     }
 }
 
@@ -267,7 +267,7 @@ void nordic_itch_handler::process_msg(const itch_cross_trade* m)
         uint64_t quantity = itch_uatoi(m->Quantity, sizeof(m->Quantity));
         auto& ob = it->second;
         trade t{timestamp(), cross_price, quantity, trade_sign::crossing};
-        _process_event(make_trade_event(ob.symbol(), timestamp(), &t));
+        _process_event(make_trade_event(ob.symbol(), timestamp(), &ob, &t));
     }
 }
 

@@ -224,6 +224,11 @@ helix_trading_state_t helix_order_book_state(helix_order_book_t ob)
     }
 }
 
+helix_price_decimals_t helix_order_book_price_decimals(helix_order_book_t ob)
+{
+  return unwrap(ob)->decimals_for_price();
+}
+
 uint64_t helix_trade_timestamp(helix_trade_t trade)
 {
     return unwrap(trade)->timestamp;

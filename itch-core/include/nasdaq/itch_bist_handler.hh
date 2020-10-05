@@ -65,7 +65,7 @@ private:
     //! Generate a sweep event if execution cleared a price level.
     event_mask sweep_event(const execution&) const;
     //! Generate timestamp with nanoseconds
-    uint64_t itch_bist_timestamp(uint64_t raw_timestamp);
+    uint64_t itch_bist_timestamp(uint32_t raw_timestamp);
 };
 
 }

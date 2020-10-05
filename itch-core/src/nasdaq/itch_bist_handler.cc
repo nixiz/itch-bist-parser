@@ -31,7 +31,7 @@ trade_sign itch_bist_trade_sign(side_type s)
   }
 }
 
-uint64_t itch_bist_handler::itch_bist_timestamp(uint64_t raw_timestamp)
+uint64_t itch_bist_handler::itch_bist_timestamp(uint32_t raw_timestamp)
 {
   using namespace std::chrono;
   auto timestamp = duration_cast<nanoseconds>(time_secs).count();
@@ -47,6 +47,7 @@ bool itch_bist_handler::is_rth_timestamp(uint64_t timestamp) const
 {
   using namespace std::chrono_literals;
   using namespace std::chrono;
+
   constexpr uint64_t rth_start = duration_cast<nanoseconds>(9h + 30min).count();
   constexpr uint64_t rth_end = duration_cast<nanoseconds>(16h).count();
   // TODO(oguzhank): burada gun basindan itibaren bakiyor ama bizim timestamp utc nanosecond!
@@ -117,15 +118,24 @@ inline void print_utc_time(const char* msg, dur_t const& tsecs) {
 
 void itch_bist_handler::process_msg(const itch_bist_seconds* m)
 {
-  time_secs = std::chrono::seconds(swap_bytes(m->UtcSeconds));
-  //print_utc_time("working utc time: ", time_secs);
+  auto new_sec = std::chrono::seconds(swap_bytes(m->UtcSeconds));
+  if (new_sec - time_secs > std::chrono::seconds(10))
+  {
+    print_utc_time("working utc time: ", time_secs);
+  }
+  time_secs = new_sec;
 }
 
 void itch_bist_handler::process_msg(const itch_bist_order_book_directory* m)
 {
   std::string sym{ m->Symbol, ITCH_SYMBOL_LEN };
   if (_symbols.count(sym) > 0) {
-    order_book ob{ sym, itch_bist_timestamp(m->TimestampNanoseconds), _symbol_max_orders.at(sym) };
+    order_book ob{ 
+      sym, 
+      itch_bist_timestamp(m->TimestampNanoseconds),  
+      swap_bytes(m->NumberOfDecimalsInPrice), 
+      _symbol_max_orders.at(sym) 
+    };
     order_book_id_map.insert({ m->OrderBookID, std::move(ob) });
   }
 }
@@ -232,10 +242,24 @@ void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m
     auto price = swap_bytes(m->TradePrice);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     auto& ob = it->second;
-    auto result = ob.execute(m->OrderID, quantity);
-    ob.set_timestamp(timestamp);
-    trade t{ timestamp, price, quantity, itch_bist_trade_sign(result.side) };
-    _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
+    switch (m->OccurredAtCross)
+    {
+    case 'Y':
+    {
+      trade t{ timestamp, price, quantity, trade_sign::crossing };
+      _process_event(make_trade_event(ob.symbol(), timestamp, &ob, &t));
+    }
+    break;
+    case 'N':
+    default:
+    {
+      auto result = ob.execute(m->OrderID, quantity);
+      ob.set_timestamp(timestamp);
+      trade t{ timestamp, price, quantity, itch_bist_trade_sign(result.side) };
+      _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
+    }
+    break;
+    }
   }
 }
 
@@ -280,7 +304,7 @@ void itch_bist_handler::process_msg(const itch_bist_trade* m)
     auto& ob = it->second;
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     trade t{ timestamp, trade_price, quantity, trade_sign::non_displayable };
-    _process_event(make_trade_event(ob.symbol(), timestamp, &t));
+    _process_event(make_trade_event(ob.symbol(), timestamp, &ob, &t));
   }
 }
 

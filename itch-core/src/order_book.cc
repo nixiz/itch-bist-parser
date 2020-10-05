@@ -14,12 +14,19 @@ execution::execution(uint64_t price, side_type side, uint64_t remaining)
 }
 
 order_book::order_book(std::string symbol, uint64_t timestamp, size_t max_orders)
-    : _symbol{std::move(symbol)}
-    , _timestamp{timestamp}
-    , _state{trading_state::unknown}
+    : order_book(symbol, timestamp, 0, max_orders) { }
+
+order_book::order_book(std::string symbol, 
+                       uint64_t timestamp, 
+                       uint16_t num_decimals_for_price, 
+                       size_t max_orders) 
+  : _symbol{ std::move(symbol) }
+  , _timestamp{ timestamp }
+  , _state{ trading_state::unknown }
+  , _num_decimals_for_price(num_decimals_for_price)
 {
 #if BOOST_VERSION >= 105600
-    _orders.reserve(max_orders);
+  _orders.reserve(max_orders);
 #endif
 }
 

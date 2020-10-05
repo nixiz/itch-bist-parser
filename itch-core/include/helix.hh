@@ -87,7 +87,7 @@ public:
 event make_event(const std::string& symbol, uint64_t timestamp, order_book*, trade*, event_mask mask = 0);
 event make_sys_event(uint64_t timestamp, event_mask mask = 0);
 event make_ob_event(const std::string& symbol, uint64_t timestamp, order_book*, event_mask mask = 0);
-event make_trade_event(const std::string& symbol, uint64_t timestamp, trade*, event_mask mask = 0);
+event make_trade_event(const std::string& symbol, uint64_t timestamp, order_book*, trade*, event_mask mask = 0);
 
 using event_callback = std::function<void(const event&)>;
 

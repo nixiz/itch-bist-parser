@@ -14,6 +14,8 @@
 #include <memory>
 #include <istream>
 #include <fstream>
+#include <chrono>
+#include <iomanip>
 
 static const char* program;
 
@@ -50,9 +52,9 @@ struct config {
 
 struct trace_session {
 	socket_address addr;
-	uint64_t	bid_price = 0;
+	double	bid_price = 0;
 	uint64_t	bid_size = 0;
-	uint64_t	ask_price = UINT64_MAX;
+	double	ask_price = UINT64_MAX;
 	uint64_t	ask_size = 0;
 };
 
@@ -113,6 +115,21 @@ const char trade_sign(helix_trade_sign_t sign)
 	}
 }
 
+static double get_price(helix_order_book_t ob, helix_price_t price)
+{
+	double p = 0.0;
+	[[unlikely]] if (auto dec = helix_order_book_price_decimals(ob);
+									 dec == 256)
+	{
+		p = static_cast<double>(price) / 256.0;
+	}
+	else
+	{
+		p = static_cast<double>(price) / std::pow(10.0, dec);
+	}
+	return p;
+}
+
 static bool is_order_book_changed(helix_session_t session, helix_event_t event)
 {
 	auto event_mask = helix_event_mask(event);
@@ -122,10 +139,10 @@ static bool is_order_book_changed(helix_session_t session, helix_event_t event)
 	if (event_mask & HELIX_EVENT_ORDER_BOOK_UPDATE) {
 		auto* ts = reinterpret_cast<trace_session*>(helix_session_data(session));
 		auto ob = helix_event_order_book(event);
-		auto bid_price = helix_order_book_bid_price(ob, 0);
-		auto bid_size = helix_order_book_bid_size(ob, 0);
-		auto ask_price = helix_order_book_ask_price(ob, 0);
-		auto ask_size = helix_order_book_ask_size(ob, 0);
+		auto bid_price = get_price(ob, helix_order_book_bid_price(ob, 0));
+		auto bid_size  = helix_order_book_bid_size(ob, 0);
+		auto ask_price = get_price(ob, helix_order_book_ask_price(ob, 0));
+		auto ask_size  = helix_order_book_ask_size(ob, 0);
 		if (!bid_price || !ask_size) {
 			return false;
 		}
@@ -137,57 +154,72 @@ static bool is_order_book_changed(helix_session_t session, helix_event_t event)
 struct fmt_pretty_ops final 
 	: trace_fmt_ops 
 {
-	void fmt_header(void) override {}
+	void fmt_header(void) override {
+		fprintf(output, "Timestamp: hours:minutes:seconds:milliseconds(6 precision)\n");
+		fprintf(output, "T: Trade Sign:\n");
+		fprintf(output, "\tB: Buyer initiated\n");
+		fprintf(output, "\tS: Seller initiated\n");
+		fprintf(output, "\tC: Sign crossing\n");
+		fprintf(output, "\tN: Sign non displayable\n");
+		fprintf(output, "Y: Sweep Event Flag\n");
+		fprintf(output, " SYMBOL  | Time Stamp USec |  Bid$   BidSz   Ask$   AskSz  |  Last$  LSize | T |  VWAP  | Y |\n");
+	}
 	void fmt_event(helix_session_t session, helix_event_t event) override
 	{
+		using namespace std::chrono;
 		auto* ts = reinterpret_cast<trace_session*>(helix_session_data(session));
 		auto timestamp = helix_event_timestamp(event);
 		if (!helix_session_is_rth_timestamp(session, timestamp) || !is_order_book_changed(session, event)) {
 			return;
 		}
-		uint64_t timestamp_in_sec = timestamp / 1000;
-		uint64_t hours = timestamp_in_sec / 60 / 60;
-		uint64_t minutes = (timestamp_in_sec - (hours * 60 * 60)) / 60;
-		uint64_t seconds = (timestamp_in_sec - (hours * 60 * 60) - (minutes * 60));
-		uint64_t milliseconds = timestamp % 1000;
-		fprintf(output, "%s | %02" PRIu64":%02" PRIu64":%02" PRIu64".%03" PRIu64 " |",
+		nanoseconds ns(*reinterpret_cast<uint64_t*>(&timestamp));
+		time_point<system_clock, seconds> tp(duration_cast<seconds>(ns));
+		auto tm = system_clock::to_time_t(tp);
+		auto lcltm = std::localtime(&tm);
+
+		const uint64_t hours = lcltm->tm_hour;
+		const uint64_t minutes = lcltm->tm_min;
+		const uint64_t seconds = lcltm->tm_sec;
+		const uint64_t milliseconds = timestamp % 1000000;
+		fprintf(output, "%s | %02" PRIu64":%02" PRIu64":%02" PRIu64".%06" PRIu64 " |",
 						helix_event_symbol(event),
 						hours, minutes, seconds, milliseconds);
 		auto event_mask = helix_event_mask(event);
 		if (event_mask & HELIX_EVENT_ORDER_BOOK_UPDATE) {
 			auto ob = helix_event_order_book(event);
 
-			auto bid_price = helix_order_book_bid_price(ob, 0);
-			auto bid_size = helix_order_book_bid_size(ob, 0);
-			auto ask_price = helix_order_book_ask_price(ob, 0);
-			auto ask_size = helix_order_book_ask_size(ob, 0);
+			auto bid_price = get_price(ob, helix_order_book_bid_price(ob, 0));
+			auto bid_size  = helix_order_book_bid_size(ob, 0);
+			auto ask_price = get_price(ob, helix_order_book_ask_price(ob, 0));
+			auto ask_size  = helix_order_book_ask_size(ob, 0);
 
 			fprintf(output, "%6" PRIu64"  %6.3f  %6.3f  %-6" PRIu64" |",
 							bid_size,
-							(double)bid_price / 10000.0,
-							(double)ask_price / 10000.0,
+							(double)bid_price,
+							(double)ask_price,
 							ask_size
 			);
 
 			ts->bid_price = bid_price;
-			ts->bid_size = bid_size;
+			ts->bid_size  = bid_size;
 			ts->ask_price = ask_price;
-			ts->ask_size = ask_size;
+			ts->ask_size  = ask_size;
 		}
 		else {
 			fprintf(output, "                               |");
 		}
 		if (event_mask & HELIX_EVENT_TRADE) {
+			auto ob = helix_event_order_book(event);
 			auto trade = helix_event_trade(event);
-			fprintf(output, " %6.3f %6" PRIu64 " | %c | %6.3f |",
-							helix_trade_price(trade) / 10000.0,
+			fprintf(output, " %6.3f %6" PRIu64 " | %c | %6.3f  |",
+							get_price(ob, helix_trade_price(trade)),
 							helix_trade_size(trade),
 							trade_sign(helix_trade_sign(trade)),
 							volume_ccy / (double)volume_shs
 			);
 		}
 		else {
-			fprintf(output, "               |   |        |");
+			fprintf(output, "               |   |         |");
 		}
 		std::string sweep_event;
 		if (event_mask & HELIX_EVENT_SWEEP) {
@@ -223,15 +255,15 @@ struct fmt_csv_ops final
 		if (event_mask & HELIX_EVENT_ORDER_BOOK_UPDATE) {
 			auto ob = helix_event_order_book(event);
 
-			auto bid_price = helix_order_book_bid_price(ob, 0);
-			auto bid_size = helix_order_book_bid_size(ob, 0);
-			auto ask_price = helix_order_book_ask_price(ob, 0);
-			auto ask_size = helix_order_book_ask_size(ob, 0);
+			auto bid_price = get_price(ob, helix_order_book_bid_price(ob, 0));
+			auto bid_size  = helix_order_book_bid_size(ob, 0);
+			auto ask_price = get_price(ob, helix_order_book_ask_price(ob, 0));
+			auto ask_size  = helix_order_book_ask_size(ob, 0);
 
 			fprintf(output, "%f,%" PRIu64",%f,%" PRIu64",",
-							(double)bid_price / 10000.0,
+							bid_price,
 							bid_size,
-							(double)ask_price / 10000.0,
+							ask_price,
 							ask_size
 			);
 
@@ -244,9 +276,10 @@ struct fmt_csv_ops final
 			fprintf(output, ",,,,");
 		}
 		if (event_mask & HELIX_EVENT_TRADE) {
+			auto ob = helix_event_order_book(event);
 			auto trade = helix_event_trade(event);
 			fprintf(output, "%f,%" PRIu64 ",%c,%f,",
-							helix_trade_price(trade) / 10000.0,
+							get_price(ob, helix_trade_price(trade)),
 							helix_trade_size(trade),
 							trade_sign(helix_trade_sign(trade)),
 							volume_ccy / (double)volume_shs
@@ -281,9 +314,9 @@ static void process_ob_event(helix_session_t session, helix_order_book_t ob, hel
 	quotes++;
 }
 
-static void process_trade_event(helix_session_t session, helix_trade_t trade, helix_event_mask_t event_mask)
+static void process_trade_event(helix_session_t session, helix_order_book_t ob, helix_trade_t trade, helix_event_mask_t event_mask)
 {
-	double trade_price = helix_trade_price(trade) / 10000.0;
+	double trade_price  = get_price(ob, helix_trade_price(trade));
 	uint64_t trade_size = helix_trade_size(trade);
 	volume_shs += trade_size;
 	volume_ccy += (double)trade_size * trade_price;
@@ -305,8 +338,9 @@ static void process_event(helix_session_t session, helix_event_t event)
 		process_ob_event(session, ob, mask);
 	}
 	if (mask & HELIX_EVENT_TRADE) {
+		helix_order_book_t ob = helix_event_order_book(event);
 		helix_trade_t trade = helix_event_trade(event);
-		process_trade_event(session, trade, mask);
+		process_trade_event(session, ob, trade, mask);
 	}
 	fmt_ops->fmt_event(session, event);
 }
@@ -371,7 +405,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	cfg.symbols = { "AKBNK.E", "GARAN.E" };
+	cfg.symbols = { "AKBNK.E" };
 	cfg.max_orders = 10;
 	for (auto&& symbol : cfg.symbols) {
 		helix_session_subscribe(session, symbol.c_str(), cfg.max_orders);

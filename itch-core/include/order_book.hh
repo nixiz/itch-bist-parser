@@ -111,10 +111,12 @@ class order_book {
     uint64_t _timestamp;
     trading_state _state;
     order_set _orders;
+    uint16_t _num_decimals_for_price; // A value of 256 means that the instrument is traded in fractions (each fraction is 1/256). 
     std::map<uint64_t, price_level, std::greater<uint64_t>> _bids;
     std::map<uint64_t, price_level, std::less   <uint64_t>> _asks;
 public:
     order_book(std::string symbol, uint64_t timestamp, size_t max_orders = 0);
+    order_book(std::string symbol, uint64_t timestamp, uint16_t num_decimals_for_price, size_t max_orders = 0);
 
     const std::string& symbol() const {
         return _symbol;
@@ -142,6 +144,10 @@ public:
 
     std::string_view state_name() const {
       return _state_name;
+    }
+
+    uint16_t decimals_for_price() const {
+      return _num_decimals_for_price;
     }
 
     void add(order order);

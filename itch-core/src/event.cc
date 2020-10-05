@@ -50,9 +50,9 @@ event make_ob_event(const std::string& symbol, uint64_t timestamp, order_book* o
     return event{mask | ev_order_book_update, symbol, timestamp, ob, nullptr};
 }
 
-event make_trade_event(const std::string& symbol, uint64_t timestamp, trade* t, event_mask mask)
+event make_trade_event(const std::string& symbol, uint64_t timestamp, order_book* ob, trade* t, event_mask mask)
 {
-    return event{mask | ev_trade, symbol, timestamp, nullptr, t};
+    return event{mask | ev_trade, symbol, timestamp, ob, t};
 }
 
 }

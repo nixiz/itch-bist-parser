@@ -39,6 +39,13 @@ typedef uint64_t helix_timestamp_t;
 typedef uint64_t helix_price_t;
 
 /*!
+ * @typedef helix_price_decimals_t
+ * @abstract Type of a price.
+ */
+typedef uint16_t helix_price_decimals_t;
+
+
+/*!
  * @typedef  helix_protocol_t
  * @abstract Type of a protocol descriptor.
  */
@@ -235,6 +242,11 @@ uint64_t helix_order_book_ask_size(helix_order_book_t, size_t);
  * @abstract Returns midprice for a price level in the order book.
  */
 helix_price_t helix_order_book_midprice(helix_order_book_t, size_t);
+
+/*!
+ * @abstract Returns number of decimals given in the order book.
+ */
+helix_price_decimals_t helix_order_book_price_decimals(helix_order_book_t ob);
 
 /*!
  * @abstract Returns the trade timestamp.
