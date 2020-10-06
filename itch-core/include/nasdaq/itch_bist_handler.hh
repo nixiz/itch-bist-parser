@@ -40,7 +40,7 @@ private:
     //! Working utc time seconds. nanoseconds will be padded on all other messages
     std::chrono::seconds time_secs {0};
 public:
-    itch_bist_handler();
+    itch_bist_handler() = default;
     bool is_rth_timestamp(uint64_t timestamp) const;
     void subscribe(std::string sym, size_t max_orders);
     void register_callback(event_callback callback);

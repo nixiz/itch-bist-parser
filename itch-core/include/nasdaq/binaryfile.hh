@@ -21,20 +21,20 @@ namespace helix {
 namespace nasdaq {
 
 template<typename Handler>
-class binaryfile_session : public session {
+class binaryfile_session final : public session {
     Handler _handler;
 public:
     explicit binaryfile_session(void* data);
 
-    virtual bool is_rth_timestamp(uint64_t timestamp) override;
+    bool is_rth_timestamp(uint64_t timestamp) override;
 
-    virtual void subscribe(const std::string& symbol, size_t max_orders) override;
+    void subscribe(const std::string& symbol, size_t max_orders) override;
 
-    virtual void register_callback(event_callback callback) override;
+    void register_callback(event_callback callback) override;
 
-    virtual void set_send_callback(send_callback send_cb) override;
+    void set_send_callback(send_callback send_cb) override;
 
-    virtual size_t process_packet(const net::packet_view& packet) override;
+    size_t process_packet(const net::packet_view& packet) override;
 };
 
 template<typename Handler>
@@ -69,7 +69,6 @@ void binaryfile_session<Handler>::set_send_callback(send_callback send_cb)
 template<typename Handler>
 size_t binaryfile_session<Handler>::process_packet(const net::packet_view& packet)
 {
-    //uint16_t payload_len = be16toh(*packet.cast<uint16_t>());
     uint16_t payload_len = swap_bytes(*packet.cast<uint16_t>());
     if (!payload_len) {
         // End of session.

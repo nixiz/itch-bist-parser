@@ -405,8 +405,9 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	//cfg.symbols = { "GARAN.E" };
 	cfg.symbols = { "AKBNK.E" };
-	cfg.max_orders = 10;
+	cfg.max_orders = 200000;
 	for (auto&& symbol : cfg.symbols) {
 		helix_session_subscribe(session, symbol.c_str(), cfg.max_orders);
 	}
@@ -438,6 +439,7 @@ int main(int argc, char* argv[])
 			size -= nr;
 		}
 	}
+	helix_session_destroy(session);
 
 	fprintf(stderr, "quotes: %" PRId64  ", trades: %" PRId64 " , max levels: %zu, max orders: %zu\n", quotes, trades, max_price_levels, max_order_count);
 	fprintf(stderr, "volume (mio): %.4lf, notional (mio): %.4lf, VWAP: %.3lf, high: %.3lf, low: %.3lf\n", (double)volume_shs * 1e-6, volume_ccy * 1e-6, (volume_ccy / (double)volume_shs), high, low);

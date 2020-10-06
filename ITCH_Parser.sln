@@ -10,6 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "itch-monitor", "itch-monito
 		{CEA84ABC-20C6-411B-A33F-C9743D65F56B} = {CEA84ABC-20C6-411B-A33F-C9743D65F56B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "orderbook-perf-test", "orderbook-perf-test\orderbook-perf-test.vcxproj", "{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CEA84ABC-20C6-411B-A33F-C9743D65F56B} = {CEA84ABC-20C6-411B-A33F-C9743D65F56B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +39,14 @@ Global
 		{28DBA37D-78C5-496F-83E2-586B75A3EC8A}.Release|x64.Build.0 = Release|x64
 		{28DBA37D-78C5-496F-83E2-586B75A3EC8A}.Release|x86.ActiveCfg = Release|Win32
 		{28DBA37D-78C5-496F-83E2-586B75A3EC8A}.Release|x86.Build.0 = Release|Win32
+		{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}.Debug|x64.ActiveCfg = Debug|x64
+		{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}.Debug|x64.Build.0 = Debug|x64
+		{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}.Debug|x86.ActiveCfg = Debug|Win32
+		{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}.Debug|x86.Build.0 = Debug|Win32
+		{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}.Release|x64.ActiveCfg = Release|x64
+		{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}.Release|x64.Build.0 = Release|x64
+		{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}.Release|x86.ActiveCfg = Release|Win32
+		{FE24D9AD-C405-4D62-AB41-D3D13005FDB4}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

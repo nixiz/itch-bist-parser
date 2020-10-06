@@ -39,10 +39,6 @@ uint64_t itch_bist_handler::itch_bist_timestamp(uint32_t raw_timestamp)
   return timestamp;
 }
 
-itch_bist_handler::itch_bist_handler()
-{
-}
-
 bool itch_bist_handler::is_rth_timestamp(uint64_t timestamp) const
 {
   using namespace std::chrono_literals;
