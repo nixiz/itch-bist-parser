@@ -44,6 +44,16 @@ extern "C" {
 //  return std::forward<in_t>(in);
 //}
 
+enum class endian_e : uint8_t {
+  big = 1,
+  little = 0,
+};
+
+static endian_e get_endian_of_os() noexcept {
+  uint16_t val{ 1 };
+  return static_cast<endian_e>(reinterpret_cast<char*>(&val)[0]);
+}
+
 [[nodiscard]] inline uint16_t swap_bytes(uint16_t in) {
   return _byteswap_ushort(in);
 }

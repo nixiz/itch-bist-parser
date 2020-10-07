@@ -1,4 +1,5 @@
 #include <extern-c/helix.h>
+#include <compat/endian.h>
 #define __STDC_FORMAT_MACROS 1
 #include <inttypes.h>
 #include <stdbool.h>
@@ -382,6 +383,8 @@ static void usage(void)
 
 int main(int argc, char* argv[])
 {
+	const auto endian = get_endian_of_os();
+
 	helix_session_t session;
 	helix_protocol_t proto;
 	struct config cfg = {};
