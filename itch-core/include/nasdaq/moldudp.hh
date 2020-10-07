@@ -43,7 +43,6 @@ public:
     virtual void set_send_callback(send_callback callback) override;
 
     virtual size_t process_packet(const net::packet_view& packet) override;
-
 };
 
 template<typename Handler>
@@ -100,7 +99,6 @@ size_t moldudp_session<Handler>::process_packet(const net::packet_view& packet)
 
         _seq_num++;
     }
-
     return p - packet.buf();
 }
 

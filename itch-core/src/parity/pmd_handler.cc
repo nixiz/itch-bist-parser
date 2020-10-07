@@ -117,7 +117,7 @@ void pmd_handler::process_msg(const pmd_order_executed* m, bool sync)
         ob.set_timestamp(timestamp);
         trade t{timestamp, result.price, quantity, pmd_trade_sign(result.side)};
         if (sync) {
-            _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
+            _process_event(make_event(ob.symbol(), timestamp, &ob, std::move(t), sweep_event(result)));
         }
     }
 }

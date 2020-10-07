@@ -3,8 +3,10 @@
 #include <boost/version.hpp>
 #include <stdexcept>
 #include <limits>
+#include <mutex>
 
 namespace helix {
+  std::mutex guard;
 
   execution::execution(uint64_t price, side_type side, uint64_t remaining)
     : price{ price }
@@ -32,6 +34,7 @@ namespace helix {
 
   void order_book::add(order order)
   {
+    std::scoped_lock lock(guard);
     switch (order.side) {
     case side_type::buy: {
       auto&& level = lookup_or_create(_bids, order.price);
@@ -59,6 +62,7 @@ namespace helix {
 
   void order_book::cancel(uint64_t order_id, uint64_t quantity)
   {
+    std::scoped_lock lock(guard);
     auto it = _orders.find(order_id);
     if (it == _orders.end()) {
       throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
@@ -74,6 +78,7 @@ namespace helix {
 
   execution order_book::execute(uint64_t order_id, uint64_t quantity)
   {
+    std::scoped_lock lock(guard);
     auto it = _orders.find(order_id);
     if (it == _orders.end()) {
       throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
@@ -91,6 +96,7 @@ namespace helix {
 
   void order_book::remove(uint64_t order_id)
   {
+    std::scoped_lock lock(guard);
     auto it = _orders.find(order_id);
     if (it == _orders.end()) {
       throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
@@ -140,6 +146,7 @@ namespace helix {
 
   side_type order_book::side(uint64_t order_id) const
   {
+    std::scoped_lock lock(guard);
     auto it = _orders.find(order_id);
     if (it == _orders.end()) {
       throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
@@ -150,21 +157,25 @@ namespace helix {
 
   size_t order_book::bid_levels() const
   {
+    std::scoped_lock lock(guard);
     return _bids.size();
   }
 
   size_t order_book::ask_levels() const
   {
+    std::scoped_lock lock(guard);
     return _asks.size();
   }
 
   size_t order_book::order_count() const
   {
+    std::scoped_lock lock(guard);
     return _orders.size();
   }
 
   uint64_t order_book::bid_price(size_t level) const
   {
+    std::scoped_lock lock(guard);
     auto it = _bids.begin();
     while (it != _bids.end() && level--) {
       it++;
@@ -178,6 +189,7 @@ namespace helix {
 
   uint64_t order_book::bid_size(size_t level) const
   {
+    std::scoped_lock lock(guard);
     auto it = _bids.begin();
     while (it != _bids.end() && level--) {
       it++;
@@ -191,6 +203,7 @@ namespace helix {
 
   uint64_t order_book::ask_price(size_t level) const
   {
+    std::scoped_lock lock(guard);
     auto it = _asks.begin();
     while (it != _asks.end() && level--) {
       it++;
@@ -204,6 +217,7 @@ namespace helix {
 
   uint64_t order_book::ask_size(size_t level) const
   {
+    std::scoped_lock lock(guard);
     auto it = _asks.begin();
     while (it != _asks.end() && level--) {
       it++;

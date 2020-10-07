@@ -194,7 +194,7 @@ void itch50_handler::process_msg(const itch50_order_executed* m)
         auto result = ob.execute(m->OrderReferenceNumber, quantity);
         ob.set_timestamp(timestamp);
         trade t{timestamp, result.price, quantity, itch50_trade_sign(result.side)};
-        _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
+        _process_event(make_event(ob.symbol(), timestamp, &ob, std::move(t), sweep_event(result)));
     }
 }
 
@@ -209,7 +209,7 @@ void itch50_handler::process_msg(const itch50_order_executed_with_price* m)
         auto result = ob.execute(m->OrderReferenceNumber, quantity);
         ob.set_timestamp(timestamp);
         trade t{timestamp, price, quantity, itch50_trade_sign(result.side)};
-        _process_event(make_event(ob.symbol(), timestamp, &ob, &t, sweep_event(result)));
+        _process_event(make_event(ob.symbol(), timestamp, &ob, std::move(t), sweep_event(result)));
     }
 }
 
@@ -263,7 +263,7 @@ void itch50_handler::process_msg(const itch50_trade* m)
         auto& ob = it->second;
         auto timestamp = itch50_timestamp(m->Timestamp);
         trade t{timestamp, trade_price, quantity, trade_sign::non_displayable};
-        _process_event(make_trade_event(ob.symbol(), timestamp, &ob, &t));
+        _process_event(make_trade_event(ob.symbol(), timestamp, &ob, std::move(t)));
     }
 }
 
@@ -276,7 +276,7 @@ void itch50_handler::process_msg(const itch50_cross_trade* m)
         auto& ob = it->second;
         auto timestamp = itch50_timestamp(m->Timestamp);
         trade t{timestamp, cross_price, quantity, trade_sign::crossing};
-        _process_event(make_trade_event(ob.symbol(), timestamp, &ob, &t));
+        _process_event(make_trade_event(ob.symbol(), timestamp, &ob, std::move(t)));
     }
 }
 

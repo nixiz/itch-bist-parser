@@ -7,9 +7,15 @@ namespace helix {
 
 namespace net {
 
-class packet_view {
+  struct packet {
     const char* _buf;
     size_t _len;
+  };
+
+
+class packet_view {
+    const char* _buf;
+    const size_t _len;
 public:
     packet_view(const char* buf, size_t len)
         : _buf{buf}
