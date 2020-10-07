@@ -162,7 +162,7 @@ struct fmt_pretty_ops final
 		fprintf(output, "\tC: Sign crossing\n");
 		fprintf(output, "\tN: Sign non displayable\n");
 		fprintf(output, "Y: Sweep Event Flag\n");
-		fprintf(output, " SYMBOL  | Time Stamp USec |  Bid$   BidSz   Ask$   AskSz  |  Last$  LSize | T |  VWAP  | Y |\n");
+		fprintf(output, " SYMBOL  | Time Stamp USec |  BidSz   Bid$   Ask$   AskSz  |  Last$  LSize | T |  VWAP   | Y |\n");
 	}
 	void fmt_event(helix_session_t session, helix_event_t event) override
 	{
@@ -405,8 +405,8 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	//cfg.symbols = { "GARAN.E" };
-	cfg.symbols = { "AKBNK.E" };
+	cfg.symbols = { "GARAN.E" };
+	//cfg.symbols = { "TSKB.E" };
 	cfg.max_orders = 200000;
 	for (auto&& symbol : cfg.symbols) {
 		helix_session_subscribe(session, symbol.c_str(), cfg.max_orders);

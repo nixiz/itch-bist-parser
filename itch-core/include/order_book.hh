@@ -18,6 +18,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include <memory_resource>
 
 namespace helix {
 
@@ -112,8 +113,8 @@ class order_book {
     trading_state _state;
     order_set _orders;
     uint16_t _num_decimals_for_price; // A value of 256 means that the instrument is traded in fractions (each fraction is 1/256). 
-    std::map<uint64_t, price_level, std::greater<uint64_t>> _bids;
-    std::map<uint64_t, price_level, std::less   <uint64_t>> _asks;
+    std::pmr::map<uint64_t, price_level, std::greater<uint64_t>> _bids;
+    std::pmr::map<uint64_t, price_level, std::less   <uint64_t>> _asks;
 public:
     order_book(std::string symbol, uint64_t timestamp, size_t max_orders = 0);
     order_book(std::string symbol, uint64_t timestamp, uint16_t num_decimals_for_price, size_t max_orders = 0);
