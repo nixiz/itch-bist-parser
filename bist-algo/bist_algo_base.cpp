@@ -8,21 +8,19 @@ using boost::asio::use_future;
 
 namespace helix
 {
-	algo_base::algo_base(std::unique_ptr<session> s)
+	algo_base::algo_base(std::weak_ptr<session> s)
 		: _session(std::move(s))
 	{
-		_session->register_callback(
+		_session.lock()->register_callback(
 			[this](std::shared_ptr<helix::event> ev)
 			{
 				// use internal event pool to trampoline event_handled in algo thread.
 				post(_pool, boost::bind(&algo_base::event_handled, this, ev));
 			});
 		_working = true;
-		//_session->register_callback(std::bind(&algo_base::event_handled, this));
 	}
 
 	algo_base::~algo_base() {
-		_session.reset();
 		//_pool.stop();
 		_pool.join();
 	}
@@ -40,6 +38,14 @@ namespace helix
 	void algo_base::event_handled(std::shared_ptr<event> ev) 
 	{
 		auto res = tick(ev.get());
+	}
+
+	std::shared_ptr<session> algo_base::get_session() {
+		return _session.lock();
+	}
+
+	std::shared_ptr<session> algo_base::get_session() const {
+		return _session.lock();
 	}
 
 }

@@ -43,7 +43,7 @@ namespace helix
 	class algo_base
 	{
 	public:
-		algo_base(std::unique_ptr<session> s);
+		algo_base(std::weak_ptr<session> s);
 		virtual ~algo_base();
 
 		// will call run() loop after initializing order book handler and registering for necessary events
@@ -59,17 +59,12 @@ namespace helix
 			return &_pool;
 		}
 
-		session* get_session() {
-			return _session.get();
-		}
-
-		const session* get_session() const {
-			return _session.get();
-		}
-
 		// all algo's should implement tick(). caclulation steps in every algorithm would be done in this thick event
 		virtual int tick(event* ev) = 0;
 	protected:
+		std::shared_ptr<session> get_session();
+		std::shared_ptr<session> get_session() const;
+
 		// all algo's should implement tick() loop and all the things will go under this loop
 		virtual int run() { return 0; } // run bi dursun þimdilik. boost thread pool olunca gerek kalmadý sanki.
 	private:
@@ -77,7 +72,7 @@ namespace helix
 		void event_handled(std::shared_ptr<event> ev);
 		bool _working {false};
 		mutable thread_pool _pool{ 1 };
-		std::unique_ptr<session> _session;
+		std::weak_ptr<session> _session;
 	};
 
 

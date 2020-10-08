@@ -12,9 +12,10 @@ namespace helix
     public algo_base
   {
   public:
-    explicit symbol_tracker_algo(std::unique_ptr<session> s, std::string symbol);
+    explicit symbol_tracker_algo(std::weak_ptr<session> s, std::string symbol);
     ~symbol_tracker_algo();
-    static symbol_tracker_algo* create_new_algo(std::string symbol);
+    static symbol_tracker_algo* create_new_algo(std::weak_ptr<session> session, 
+                                                std::string symbol);
   private:
     int tick(event* ev) override;
     std::unique_ptr<struct trace_fmt_ops> impl;

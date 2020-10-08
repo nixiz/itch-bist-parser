@@ -1,5 +1,5 @@
 #include "symbol_tracker_algo.h"
-#include "nasdaq/itch_bist_protocol.hh"
+
 #include <sstream>
 #include <memory>
 #include <iomanip>
@@ -25,8 +25,8 @@ namespace helix
 		double low = +INFINITY;
 	};
 
-	struct trace_fmt_ops {
-		trace_fmt_ops() = default;
+	struct trace_fmt_ops 
+	{
 		virtual ~trace_fmt_ops() {
 			if (output) {
 				fflush(output);
@@ -48,6 +48,10 @@ namespace helix
 				flush = true;
 			}
 		}
+		
+		trace_session* get_ts() {
+			return &ts;
+		}
 
 		virtual void fmt_header(void) = 0;
 		virtual void fmt_event(session* session, event* event) = 0;
@@ -55,6 +59,7 @@ namespace helix
 	protected:
 		FILE* output = NULL;
 		bool flush = false;
+		trace_session ts;
 	};
 
 	const char trade_sign_c(trade_sign sign)
@@ -84,14 +89,13 @@ namespace helix
 		return p;
 	}
 
-	static bool is_order_book_changed(session* session, event* event)
+	static bool is_order_book_changed(const trace_session& ts, event* event)
 	{
 		auto event_mask = event->get_mask();
 		if (event_mask & ev_trade) {
 			return true;
 		}
 		if (event_mask & ev_order_book_update) {
-			auto* ts = reinterpret_cast<trace_session*>(session->data());
 			auto ob = event->get_ob();
 			auto bid_price = get_price(ob, ob->bid_price(0));
 			auto bid_size = ob->bid_size(0);
@@ -100,7 +104,10 @@ namespace helix
 			if (!bid_price || !ask_size) {
 				return false;
 			}
-			return bid_price != ts->bid_price || bid_size != ts->bid_size || ask_price != ts->ask_price || ask_size != ts->ask_size;
+			return	bid_price != ts.bid_price || 
+							bid_size != ts.bid_size		|| 
+							ask_price != ts.ask_price || 
+							ask_size != ts.ask_size;
 		}
 		return false;
 	}
@@ -121,20 +128,18 @@ namespace helix
 
 		void fmt_footer(session* session, event* event) override 
 		{
-			auto* ts = reinterpret_cast<trace_session*>(session->data());
 			if (event->get_mask() & ev_closed) {
-				fprintf(output, "quotes: %" PRId64  ", trades: %" PRId64 " , max levels: %zu, max orders: %zu\n", ts->quotes, ts->trades, ts->max_price_levels, ts->max_order_count);
-				fprintf(output, "volume (mio): %.4lf, notional (mio): %.4lf, VWAP: %.3lf, high: %.3lf, low: %.3lf\n", (double)ts->volume_shs * 1e-6, ts->volume_ccy * 1e-6, (ts->volume_ccy / (double)ts->volume_shs), ts->high, ts->low);
+				fprintf(output, "quotes: %" PRId64  ", trades: %" PRId64 " , max levels: %zu, max orders: %zu\n", ts.quotes, ts.trades, ts.max_price_levels, ts.max_order_count);
+				fprintf(output, "volume (mio): %.4lf, notional (mio): %.4lf, VWAP: %.3lf, high: %.3lf, low: %.3lf\n", (double)ts.volume_shs * 1e-6, ts.volume_ccy * 1e-6, (ts.volume_ccy / (double)ts.volume_shs), ts.high, ts.low);
 			}
 		}
 
 		void fmt_event(session* session, event* event) override
 		{
 			using namespace std::chrono;
-			auto* ts = reinterpret_cast<trace_session*>(session->data());
 			auto timestamp = event->get_timestamp();
 			if (!session->is_rth_timestamp(timestamp) ||
-					!is_order_book_changed(session, event)) 
+					!is_order_book_changed(ts, event)) 
 			{
 				return;
 			}
@@ -166,10 +171,10 @@ namespace helix
 								ask_size
 				);
 
-				ts->bid_price = bid_price;
-				ts->bid_size = bid_size;
-				ts->ask_price = ask_price;
-				ts->ask_size = ask_size;
+				ts.bid_price = bid_price;
+				ts.bid_size = bid_size;
+				ts.ask_price = ask_price;
+				ts.ask_size = ask_size;
 			}
 			else {
 				fprintf(output, "                               |");
@@ -181,7 +186,7 @@ namespace helix
 								get_price(ob, trade->price),
 								trade->size,
 								trade_sign_c(trade->sign),
-								ts->volume_ccy / (double)ts->volume_shs
+								ts.volume_ccy / (double)ts.volume_shs
 				);
 			}
 			else {
@@ -202,76 +207,8 @@ namespace helix
 		}
 	};
 
-#if 0
-	struct fmt_csv_ops final
-		: trace_fmt_ops
+	static void process_ob_event(trace_session* ts, order_book_agent* ob, event_mask event_mask)
 	{
-		void fmt_header(void) override {
-			fprintf(output, "Symbol,Timestamp,BidPrice,BidSize,AskPrice,AskSize,LastPrice,LastSize,LastSign,VWAP,SweepEvent\n");
-			if (flush) fflush(output);
-		}
-
-		void fmt_event(session* session, event* event) override {
-			auto* ts = reinterpret_cast<trace_session*>(helix_session_data(session));
-			auto timestamp = helix_event_timestamp(event);
-			if (!helix_session_is_rth_timestamp(session, timestamp) || !is_order_book_changed(session, event)) {
-				return;
-			}
-			auto symbol = helix_event_symbol(event);
-			fprintf(output, "%s,%" PRIu64 ",", symbol, timestamp);
-			auto event_mask = helix_event_mask(event);
-			if (event_mask & HELIX_EVENT_ORDER_BOOK_UPDATE) {
-				auto ob = helix_event_order_book(event);
-
-				auto bid_price = get_price(ob, helix_order_book_bid_price(ob, 0));
-				auto bid_size = helix_order_book_bid_size(ob, 0);
-				auto ask_price = get_price(ob, helix_order_book_ask_price(ob, 0));
-				auto ask_size = helix_order_book_ask_size(ob, 0);
-
-				fprintf(output, "%f,%" PRIu64",%f,%" PRIu64",",
-								bid_price,
-								bid_size,
-								ask_price,
-								ask_size
-				);
-
-				ts->bid_price = bid_price;
-				ts->bid_size = bid_size;
-				ts->ask_price = ask_price;
-				ts->ask_size = ask_size;
-			}
-			else {
-				fprintf(output, ",,,,");
-			}
-			if (event_mask & HELIX_EVENT_TRADE) {
-				auto ob = helix_event_order_book(event);
-				auto trade = helix_event_trade(event);
-				fprintf(output, "%f,%" PRIu64 ",%c,%f,",
-								get_price(ob, helix_trade_price(trade)),
-								helix_trade_size(trade),
-								trade_sign(helix_trade_sign(trade)),
-								volume_ccy / (double)volume_shs
-				);
-			}
-			else {
-				fprintf(output, ",,,,");
-			}
-			std::string sweep_event;
-			if (event_mask & HELIX_EVENT_SWEEP) {
-				sweep_event = "Y";
-			}
-			fprintf(output, "%s", sweep_event.c_str());
-			fprintf(output, "\n");
-			if (flush) {
-				fflush(output);
-			}
-		}
-	};
-#endif
-
-	static void process_ob_event(session* session, order_book_agent* ob, event_mask event_mask)
-	{
-		auto* ts = reinterpret_cast<trace_session*>(session->data());
 		size_t bid_levels = ob->bid_levels();
 		size_t ask_levels = ob->ask_levels();
 		size_t order_count = ob->order_count();
@@ -282,9 +219,8 @@ namespace helix
 		ts->quotes++;
 	}
 
-	static void process_trade_event(session* session, order_book_agent* ob, trade* trade, event_mask event_mask)
+	static void process_trade_event(trace_session* ts, order_book_agent* ob, trade* trade, event_mask event_mask)
 	{
-		auto* ts = reinterpret_cast<trace_session*>(session->data());
 		double trade_price = get_price(ob, trade->price);
 		uint64_t trade_size = trade->size;
 		ts->volume_shs += trade_size;
@@ -294,17 +230,17 @@ namespace helix
 		ts->trades++;
 	}
 
-  symbol_tracker_algo* symbol_tracker_algo::create_new_algo(std::string symbol) 
+  symbol_tracker_algo* symbol_tracker_algo::create_new_algo(
+		std::weak_ptr<session> session, 
+		std::string symbol)
   {
-    helix::nasdaq::itch_bist_protocol protocol{ "nasdaq-binaryfile-itch-bist" };
-    std::unique_ptr<session> s(protocol.new_session(new trace_session));
-    return new symbol_tracker_algo(std::move(s), symbol);
+    return new symbol_tracker_algo(session, symbol);
   }
 
   symbol_tracker_algo::symbol_tracker_algo(
-		std::unique_ptr<session> s, 
+		std::weak_ptr<session> s,
 		std::string symbol)
-    : algo_base(std::move(s))
+    : algo_base(s)
   {
 		impl.reset(new fmt_pretty_ops);
 		std::stringstream s_str;
@@ -314,30 +250,27 @@ namespace helix
 		get_session()->subscribe(symbol, 1000);
 	}
 
-	symbol_tracker_algo::~symbol_tracker_algo() {
-		auto* ts = reinterpret_cast<trace_session*>(get_session()->data());
-		delete ts;
-	}
+	symbol_tracker_algo::~symbol_tracker_algo() = default;
 
   int symbol_tracker_algo::tick(event* ev) {
 		auto mask = ev->get_mask();
-
+		auto session = get_session();
 		if (mask & ev_opened || mask & ev_closed) {
 			// TODO(): do whatever when bist opened or closed!
 			puts("bist opened/closed event consumed.");
-			impl->fmt_footer(get_session(), ev);
+			impl->fmt_footer(session.get(), ev);
 		}
 
 		if (mask & ev_order_book_update) {
 			auto ob = ev->get_ob();
-			process_ob_event(get_session(), ob, mask);
+			process_ob_event(impl->get_ts(), ob, mask);
 		}
 		if (mask & ev_trade) {
 			auto ob = ev->get_ob();
 			auto trade = ev->get_trade();
-			process_trade_event(get_session(), ob, trade, mask);
+			process_trade_event(impl->get_ts(), ob, trade, mask);
 		}
-		impl->fmt_event(get_session(), ev);
+		impl->fmt_event(session.get(), ev);
 		return 0;
 	}
 

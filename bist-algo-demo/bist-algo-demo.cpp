@@ -11,6 +11,7 @@
 #include <chrono>
 #include <iomanip>
 
+#include "nasdaq/itch_bist_protocol.hh"
 #include "symbol_tracker_algo.h"
 #include "net.hh"
 
@@ -25,14 +26,17 @@ int main(int argc, char* argv[])
 	//cfg.symbols = { "TSKB.E" };
 	cfg.max_orders = 200000;
 	*/
+	helix::nasdaq::itch_bist_protocol protocol{ "nasdaq-binaryfile-itch-bist" };
+	std::shared_ptr<session> session(protocol.new_session(nullptr));
+
 	std::vector<algo_base*> algos
 	{
-		symbol_tracker_algo::create_new_algo("AKBNK.E"),
-		//symbol_tracker_algo::create_new_algo("ASELS.E"),
-		//symbol_tracker_algo::create_new_algo("ALCTL.E"),
-		//symbol_tracker_algo::create_new_algo("BRSAN.E"),
-		//symbol_tracker_algo::create_new_algo("HEKTS.E"),
-		//symbol_tracker_algo::create_new_algo("GARAN.E"),
+		symbol_tracker_algo::create_new_algo(session, "AKBNK.E"),
+		//symbol_tracker_algo::create_new_algo(session, "ASELS.E"),
+		//symbol_tracker_algo::create_new_algo(session, "ALCTL.E"),
+		//symbol_tracker_algo::create_new_algo(session, "BRSAN.E"),
+		//symbol_tracker_algo::create_new_algo(session, "HEKTS.E"),
+		//symbol_tracker_algo::create_new_algo(session, "GARAN.E"),
 	};
 	if (!input.empty())
 	{
@@ -45,9 +49,7 @@ int main(int argc, char* argv[])
 		size_t size = buffer.size();
 		while (size > 0) {
 			int nr = 0;
-			for (auto alg : algos) {
-				nr = alg->get_session()->process_packet(helix::net::packet_view{ p, size });
-			}
+			nr = session->process_packet(helix::net::packet_view{ p, size });
 			p += nr;
 			size -= nr;
 		}
