@@ -151,39 +151,46 @@ namespace helix
 			const uint64_t minutes = lcltm->tm_min;
 			const uint64_t seconds = lcltm->tm_sec;
 			const uint64_t milliseconds = timestamp % 1000000;
+
+			auto ob = event->get_ob();
+
+			auto bid_level = ob->bid_level(0);
+			auto ask_level = ob->ask_level(0);
+
+			auto bid_price = get_price(ob, bid_level.price);
+			auto bid_size  = bid_level.size;
+			auto ask_price = get_price(ob, ask_level.price);
+			auto ask_size  = ask_level.size;
+
+			// burasý neden böyle mutlaka öðren!
+			if (!bid_price || !ask_size) {
+				//fprintf(output, " ___*-*-*-*-*-*-*-*-*-*-*-*___ |");
+				return;
+			}
+
+			const bool has_ob_changed = bid_price != ts.bid_price || 
+																	ask_price != ts.ask_price || 
+																	bid_size  != ts.bid_size  || 
+																	ask_size  != ts.ask_size;
+			if (!has_ob_changed) return;
+
 			fprintf(output, "%s | %02" PRIu64":%02" PRIu64":%02" PRIu64".%06" PRIu64 " |",
 							event->get_symbol().data(),
 							hours, minutes, seconds, milliseconds);
 			auto event_mask = event->get_mask();
 
-			if (event_mask & ev_order_book_update) {
-				auto ob = event->get_ob();
-
-				auto bid_level = ob->bid_level(0);
-				auto ask_level = ob->ask_level(0);
-				
-				auto bid_price = get_price(ob, bid_level.price);
-				auto bid_size = bid_level.size;
-				auto ask_price = get_price(ob, ask_level.price);
-				auto ask_size = ask_level.size;
-				
-				// burasý neden böyle mutlaka öðren!
-				if (!bid_price || !ask_size) {
-					fprintf(output, " ___*-*-*-*-*-*-*-*-*-*-*-*___ |");
-				}
-				else
-				{
-					fprintf(output, "%6" PRIu64"  %6.3f  %6.3f  %-6" PRIu64" |",
-									bid_size,
-									bid_price,
-									ask_price,
-									ask_size
-					);
-					ts.bid_price = bid_price;
-					ts.bid_size = bid_size;
-					ts.ask_price = ask_price;
-					ts.ask_size = ask_size;
-				}
+			if (event_mask & ev_order_book_update) 
+			{				
+				fprintf(output, "%6" PRIu64"  %6.3f  %6.3f  %-6" PRIu64" |",
+								bid_size,
+								bid_price,
+								ask_price,
+								ask_size
+				);
+				ts.bid_price = bid_price;
+				ts.bid_size = bid_size;
+				ts.ask_price = ask_price;
+				ts.ask_size = ask_size;
 			}
 			else {
 				fprintf(output, "                               |");
@@ -259,7 +266,8 @@ namespace helix
 		s_str << "D:/hft/results/" << "result_" << symbol << ".out";
 		impl->init(s_str.str());
 		impl->fmt_header();
-		get_session()->subscribe(symbol, 1000);
+		register_and_subscribe(symbol, 1000);
+		//get_session()->subscribe(symbol, 1000);
 	}
 
 	symbol_tracker_algo::~symbol_tracker_algo() {

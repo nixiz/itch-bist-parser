@@ -2,8 +2,12 @@
 
 #include <helix.hh>
 #include <boost/asio/thread_pool.hpp>
+#include <boost/asio/ts/executor.hpp>
 
+using boost::asio::post;
 using boost::asio::thread_pool;
+using boost::asio::use_future;
+
 namespace helix
 {
 	/*
@@ -64,6 +68,27 @@ namespace helix
 	protected:
 		std::shared_ptr<session> get_session();
 		std::shared_ptr<session> get_session() const;
+		
+		void register_and_subscribe(std::string symbol, size_t max_orders)
+		{
+			auto session = _session.lock();
+			if constexpr (true)
+			{
+				session->register_for_symbol(
+					symbol,
+					[this](std::shared_ptr<helix::event> ev)
+					{
+						// use internal event pool to trampoline event_handled in algo thread.
+						post(_pool, boost::bind(&algo_base::event_handled, this, ev));
+					},
+					max_orders);
+			}
+			else
+			{
+				session->subscribe(symbol, max_orders);
+				session->register_callback(std::bind(&algo_base::event_handled, this, std::placeholders::_1));
+			}
+		}
 
 		// all algo's should implement tick() loop and all the things will go under this loop
 		virtual int run() { return 0; } // run bi dursun þimdilik. boost thread pool olunca gerek kalmadý sanki.

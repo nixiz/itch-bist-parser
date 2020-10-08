@@ -97,7 +97,7 @@ namespace helix
     if (ob_thread)
     {
       auto ret = post(*ob_thread,
-                      use_future([=]
+                      use_future([&]
                                  {
                                    return ob->side(order_id);
                                  }));
@@ -161,7 +161,7 @@ namespace helix
     if (ob_thread)
     {
       auto ret = post(*ob_thread,
-                      use_future([=]
+                      use_future([&]
                                  {
                                    return ob->bid_price(level);
                                  }));
@@ -177,7 +177,7 @@ namespace helix
     if (ob_thread)
     {
       auto ret = post(*ob_thread,
-                      use_future([=]
+                      use_future([&]
                                  {
                                    return ob->bid_size(level);
                                  }));
@@ -193,7 +193,7 @@ namespace helix
     if (ob_thread)
     {
       auto ret = post(*ob_thread,
-                      use_future([=]
+                      use_future([&]
                                  {
                                    return ob->ask_price(level);
                                  }));
@@ -209,7 +209,7 @@ namespace helix
     if (ob_thread)
     {
       auto ret = post(*ob_thread,
-                      use_future([=]
+                      use_future([&]
                                  {
                                    return ob->ask_size(level);
                                  }));
@@ -225,7 +225,7 @@ namespace helix
     if (ob_thread)
     {
       auto ret = post(*ob_thread,
-                      use_future([=]
+                      use_future([&]
                                  {
                                    return ob->midprice(level);
                                  }));
@@ -241,7 +241,7 @@ namespace helix
     if (ob_thread)
     {
       auto ret = post(*ob_thread,
-                      use_future([=]
+                      use_future([&]
                                  {
                                    return ob->bid_level(level);
                                  }));
@@ -257,7 +257,7 @@ namespace helix
     if (ob_thread)
     {
       auto ret = post(*ob_thread,
-                      use_future([=]
+                      use_future([&]
                                  {
                                    return ob->ask_level(level);
                                  }));

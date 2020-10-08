@@ -12,6 +12,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <unordered_map>
 #include <string>
 #include <memory>
 
@@ -107,7 +108,36 @@ namespace helix {
       return _data;
     }
 
-    virtual void subscribe(const std::string& symbol, size_t max_orders) = 0;
+    void register_for_symbol(std::string symbol, 
+                             event_callback callback, 
+                             size_t max_orders = 1000)
+    {
+      symbol = subscribe(symbol, max_orders);
+      _subs[symbol].push_back(std::move(callback));
+      register_callback([&] (std::shared_ptr<event> ev)
+                        {
+                          std::string symb(ev->get_symbol());
+                          if (auto it = _subs.find(symb);
+                                   it != _subs.end())
+                          {
+                            for (auto&& cb : it->second) {
+                              cb(ev);
+                            }
+                          }
+                          else if (symb.empty()) // means broadcast message
+                          {
+                            for (auto&& kvp : _subs) {
+                              for (auto&& cb : kvp.second) {
+                                cb(ev);
+                              }
+                            }
+                          }
+                        });
+    }
+
+    virtual void stop() {}
+
+    virtual std::string subscribe(const std::string& symbol, size_t max_orders) = 0;
 
     virtual void register_callback(event_callback callback) = 0;
 
@@ -117,6 +147,7 @@ namespace helix {
 
     virtual size_t process_packet(const net::packet_view& packet) = 0;
   private:
+    std::unordered_map<std::string, std::vector<event_callback>> _subs;
     void* _data;
   };
 

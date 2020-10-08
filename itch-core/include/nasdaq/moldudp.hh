@@ -36,7 +36,7 @@ public:
 
     virtual bool is_rth_timestamp(uint64_t timestamp) override;
 
-    virtual void subscribe(const std::string& symbol, size_t max_orders) override;
+    virtual std::string subscribe(const std::string& symbol, size_t max_orders) override;
 
     virtual void register_callback(event_callback callback) override;
 
@@ -59,9 +59,10 @@ bool moldudp_session<Handler>::is_rth_timestamp(uint64_t timestamp)
 }
 
 template<typename Handler>
-void moldudp_session<Handler>::subscribe(const std::string& symbol, size_t max_orders)
+std::string moldudp_session<Handler>::subscribe(const std::string& symbol, size_t max_orders)
 {
     _handler.subscribe(symbol, max_orders);
+    return symbol;
 }
 
 template<typename Handler>

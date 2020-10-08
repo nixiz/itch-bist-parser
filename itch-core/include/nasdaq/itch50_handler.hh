@@ -39,9 +39,10 @@ private:
 public:
     itch50_handler();
     bool is_rth_timestamp(uint64_t timestamp) const;
-    void subscribe(std::string sym, size_t max_orders);
+    std::string subscribe(std::string sym, size_t max_orders);
     void register_callback(event_callback callback);
     size_t process_packet(const net::packet_view& packet);
+    void stop() {}
 private:
     template<typename T>
     size_t process_msg(const net::packet_view& packet);

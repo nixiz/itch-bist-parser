@@ -54,10 +54,13 @@ int main(int argc, char* argv[])
 			size -= nr;
 		}
 	}
+	//session->stop();
+	//std::this_thread::sleep_for(std::chrono::seconds(1));
 	for (auto&& algo : algos) {
 		delete algo;
 	}
 	algos.clear();
+	session.reset();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

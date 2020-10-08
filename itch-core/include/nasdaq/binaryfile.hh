@@ -28,13 +28,15 @@ public:
 
     bool is_rth_timestamp(uint64_t timestamp) override;
 
-    void subscribe(const std::string& symbol, size_t max_orders) override;
+    std::string subscribe(const std::string& symbol, size_t max_orders) override;
 
     void register_callback(event_callback callback) override;
 
     void set_send_callback(send_callback send_cb) override;
 
     size_t process_packet(const net::packet_view& packet) override;
+
+    void stop() override;
 };
 
 template<typename Handler>
@@ -50,15 +52,21 @@ bool binaryfile_session<Handler>::is_rth_timestamp(uint64_t timestamp)
 }
 
 template<typename Handler>
-void binaryfile_session<Handler>::subscribe(const std::string& symbol, size_t max_orders)
+std::string binaryfile_session<Handler>::subscribe(const std::string& symbol, size_t max_orders)
 {
-    _handler.subscribe(symbol, max_orders);
+    return _handler.subscribe(symbol, max_orders);
 }
 
 template<typename Handler>
 void binaryfile_session<Handler>::register_callback(event_callback callback)
 {
     _handler.register_callback(callback);
+}
+
+template<typename Handler>
+void binaryfile_session<Handler>::stop()
+{
+  _handler.stop();
 }
 
 template<typename Handler>

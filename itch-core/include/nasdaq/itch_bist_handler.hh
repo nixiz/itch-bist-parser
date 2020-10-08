@@ -45,9 +45,10 @@ public:
     itch_bist_handler() = default;
     ~itch_bist_handler();
     bool is_rth_timestamp(uint64_t timestamp) const;
-    void subscribe(std::string sym, size_t max_orders);
+    std::string subscribe(std::string sym, size_t max_orders);
     void register_callback(event_callback callback);
     size_t process_packet(const net::packet_view& packet);
+    void stop();
 
 private:
     template<typename T>

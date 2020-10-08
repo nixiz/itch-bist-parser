@@ -1,29 +1,12 @@
 #include "bist_algo_base.h"
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/ts/executor.hpp>
-
-using boost::asio::post;
-using boost::asio::thread_pool;
-using boost::asio::use_future;
 
 namespace helix
 {
 	algo_base::algo_base(std::weak_ptr<session> s)
 		: _session(std::move(s))
 	{
-		if constexpr (true)
-		{
-			_session.lock()->register_callback(
-				[this](std::shared_ptr<helix::event> ev)
-				{
-					// use internal event pool to trampoline event_handled in algo thread.
-					post(_pool, boost::bind(&algo_base::event_handled, this, ev));
-				});
-		}
-		else
-		{
-			_session.lock()->register_callback(std::bind(&algo_base::event_handled, this, std::placeholders::_1));
-		}
+		//defer(boost::bind(&algo_base::register_and_subscribe, this));
 		_working = true;
 	}
 
@@ -36,6 +19,7 @@ namespace helix
 
 	// will terminate loop as soon as possible and return the algo to idle state
 	void algo_base::stop() {
+		_pool.join();
 		_working = false;
 	}
 

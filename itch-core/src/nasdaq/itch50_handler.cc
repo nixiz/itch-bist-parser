@@ -46,7 +46,7 @@ bool itch50_handler::is_rth_timestamp(uint64_t timestamp) const
     return timestamp >= rth_start && timestamp < rth_end;
 }
 
-void itch50_handler::subscribe(std::string sym, size_t max_orders) {
+std::string itch50_handler::subscribe(std::string sym, size_t max_orders) {
     auto padding = ITCH_SYMBOL_LEN - sym.size();
     if (padding > 0) {
         sym.insert(sym.size(), padding, ' ');
@@ -58,6 +58,7 @@ void itch50_handler::subscribe(std::string sym, size_t max_orders) {
         max_all_orders += kv.second;
     }
     order_book_id_map.reserve(max_all_orders);
+    return sym;
 }
 
 void itch50_handler::register_callback(event_callback callback) {
