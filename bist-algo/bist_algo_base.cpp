@@ -11,19 +11,17 @@ namespace helix
 	algo_base::algo_base(std::weak_ptr<session> s)
 		: _session(std::move(s))
 	{
-		_session.lock()->register_callback(
-			[this](std::shared_ptr<helix::event> ev)
-			{
-				// use internal event pool to trampoline event_handled in algo thread.
-				post(_pool, boost::bind(&algo_base::event_handled, this, ev));
-			});
+		//_session.lock()->register_callback(
+		//	[this](std::shared_ptr<helix::event> ev)
+		//	{
+		//		// use internal event pool to trampoline event_handled in algo thread.
+		//		post(_pool, boost::bind(&algo_base::event_handled, this, ev));
+		//	});
+		_session.lock()->register_callback(std::bind(&algo_base::event_handled, this, std::placeholders::_1));
 		_working = true;
 	}
 
-	algo_base::~algo_base() {
-		//_pool.stop();
-		_pool.join();
-	}
+	algo_base::~algo_base() = default;
 
 	// will call run() loop after initializing order book handler and registering for necessary events
 	void algo_base::start() {

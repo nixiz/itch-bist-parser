@@ -117,19 +117,25 @@ size_t itch_bist_handler::process_msg(const net::packet_view& packet)
   // trait ozellikleri ile belirtilebilir!
   // if constexpr (itch_bist_msg_traits<T>::should_process) { process_msg(..); }
 
-  // burada udp den gelecek olan veriler asenkron çalýþan algo order book thread'lerine gönderileceði
-  // için, her thread içerisine kopyalanmasý gerekiyor.
-  std::vector<char> receive_buffer{ packet.buf(), packet.end() };
+  if constexpr (false)
+  {
+    // burada udp den gelecek olan veriler asenkron çalýþan algo order book thread'lerine gönderileceði
+    // için, her thread içerisine kopyalanmasý gerekiyor.
+    std::vector<char> receive_buffer{ packet.buf(), packet.end() };
 
-  // sonrasýnda burada farklý thread'de okunmasýný istemediðimiz basit paketleri
-  // trait sýnýfý üzerinden kontrol ederek senktron çaðýrabiliriz
-  post(_pool,
-       [=, buff = std::move(receive_buffer)]{
-         const T * msg = reinterpret_cast<const T*>(buff.data());
-         //auto pack = net::packet_view{buff.data(), buff.size()};
-         this->process_msg(msg);
-       });
-  //process_msg(packet.cast<T>());
+    // sonrasýnda burada farklý thread'de okunmasýný istemediðimiz basit paketleri
+    // trait sýnýfý üzerinden kontrol ederek senktron çaðýrabiliriz
+    post(_pool,
+         [=, buff = std::move(receive_buffer)]{
+           const T * msg = reinterpret_cast<const T*>(buff.data());
+    //auto pack = net::packet_view{buff.data(), buff.size()};
+    this->process_msg(msg);
+         });
+  }
+  else
+  {
+    process_msg(packet.cast<T>());
+  }
   return sizeof(T);
 }
 
@@ -220,7 +226,7 @@ void itch_bist_handler::process_msg(const itch_bist_add_order* m)
     order o{ order_id, price, quantity, side, timestamp };
     ob.add(std::move(o));
     ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob)));
+    _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
   }
 }
 
@@ -239,7 +245,7 @@ void itch_bist_handler::process_msg(const itch_bist_add_order_mpid* m)
     order o{ order_id, price, quantity, side, timestamp };
     ob.add(std::move(o));
     ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob)));
+    _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
   }
 }
 
@@ -254,7 +260,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_executed* m)
     auto result = ob.execute(m->OrderID, quantity);
     ob.set_timestamp(timestamp);
     trade t{ timestamp, result.price, quantity, itch_bist_trade_sign(result.side) };
-    _process_event(make_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob), std::move(t), sweep_event(result)));
+    _process_event(make_event(ob.symbol(), timestamp, &ob, std::move(t), sweep_event(result)));
   }
 }
 
@@ -272,7 +278,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m
     case 'Y':
     {
       trade t{ timestamp, price, quantity, trade_sign::crossing };
-      _process_event(make_trade_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob), std::move(t)));
+      _process_event(make_trade_event(ob.symbol(), timestamp, &ob, std::move(t)));
     }
     break;
     case 'N':
@@ -281,7 +287,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m
       auto result = ob.execute(m->OrderID, quantity);
       ob.set_timestamp(timestamp);
       trade t{ timestamp, price, quantity, itch_bist_trade_sign(result.side) };
-      _process_event(make_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob), std::move(t), sweep_event(result)));
+      _process_event(make_event(ob.symbol(), timestamp, &ob, std::move(t), sweep_event(result)));
     }
     break;
     }
@@ -302,7 +308,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_replace* m)
     order o{ order_id, price, quantity, side, timestamp };
     ob.replace(m->OrderID, std::move(o));
     ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob)));
+    _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
   }
 }
 
@@ -315,7 +321,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_delete* m)
     ob.remove(m->OrderID);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob)));
+    _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
   }
 }
 
@@ -329,7 +335,7 @@ void itch_bist_handler::process_msg(const itch_bist_trade* m)
     auto& ob = it->second;
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     trade t{ timestamp, trade_price, quantity, trade_sign::non_displayable };
-    _process_event(make_trade_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob), std::move(t)));
+    _process_event(make_trade_event(ob.symbol(), timestamp, &ob, std::move(t)));
   }
 }
 

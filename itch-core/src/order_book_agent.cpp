@@ -9,7 +9,7 @@ using boost::asio::use_future;
 namespace helix
 {
   order_book_agent::order_book_agent(order_book* ob_)
-    : order_book_agent(nullptr, ob) {}
+    : order_book_agent(nullptr, ob_) {}
 
   order_book_agent::order_book_agent(
     thread_pool* ob_thread_, 

@@ -90,6 +90,7 @@ namespace helix {
   std::shared_ptr<event> make_ob_event(std::string_view symbol, uint64_t timestamp, order_book_agent&&, event_mask mask = 0);
   std::shared_ptr<event> make_trade_event(std::string_view symbol, uint64_t timestamp, order_book_agent&&, trade&&, event_mask mask = 0);
 
+  //typedef void (*event_callback)(std::shared_ptr<event>);
   using event_callback = std::function<void(std::shared_ptr<event>)>;
 
   using send_callback = std::function<void(char*, size_t)>;

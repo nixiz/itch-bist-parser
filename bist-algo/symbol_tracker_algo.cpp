@@ -47,6 +47,7 @@ namespace helix
 				output = stdout;
 				flush = true;
 			}
+			flush = true;
 		}
 		
 		trace_session* get_ts() {
@@ -89,28 +90,28 @@ namespace helix
 		return p;
 	}
 
-	static bool is_order_book_changed(const trace_session& ts, event* event)
-	{
-		auto event_mask = event->get_mask();
-		if (event_mask & ev_trade) {
-			return true;
-		}
-		if (event_mask & ev_order_book_update) {
-			auto ob = event->get_ob();
-			auto bid_price = get_price(ob, ob->bid_price(0));
-			auto bid_size = ob->bid_size(0);
-			auto ask_price = get_price(ob, ob->ask_price(0));
-			auto ask_size = ob->ask_size(0);
-			if (!bid_price || !ask_size) {
-				return false;
-			}
-			return	bid_price != ts.bid_price || 
-							bid_size != ts.bid_size		|| 
-							ask_price != ts.ask_price || 
-							ask_size != ts.ask_size;
-		}
-		return false;
-	}
+	//static bool is_order_book_changed(const trace_session& ts, event* event)
+	//{
+	//	auto event_mask = event->get_mask();
+	//	if (event_mask & ev_trade) {
+	//		return true;
+	//	}
+	//	if (event_mask & ev_order_book_update) {
+	//		auto ob = event->get_ob();
+	//		auto bid_price = get_price(ob, ob->bid_price(0));
+	//		auto bid_size = ob->bid_size(0);
+	//		auto ask_price = get_price(ob, ob->ask_price(0));
+	//		auto ask_size = ob->ask_size(0);
+	//		if (!bid_price || !ask_size) {
+	//			return false;
+	//		}
+	//		return	bid_price != ts.bid_price || 
+	//						bid_size != ts.bid_size		|| 
+	//						ask_price != ts.ask_price || 
+	//						ask_size != ts.ask_size;
+	//	}
+	//	return false;
+	//}
 
 	struct fmt_pretty_ops final
 		: trace_fmt_ops
@@ -138,9 +139,7 @@ namespace helix
 		{
 			using namespace std::chrono;
 			auto timestamp = event->get_timestamp();
-			if (!session->is_rth_timestamp(timestamp) ||
-					!is_order_book_changed(ts, event)) 
-			{
+			if (!session->is_rth_timestamp(timestamp)) {
 				return;
 			}
 			nanoseconds ns(*reinterpret_cast<uint64_t*>(&timestamp));
@@ -156,29 +155,34 @@ namespace helix
 							event->get_symbol().data(),
 							hours, minutes, seconds, milliseconds);
 			auto event_mask = event->get_mask();
+
 			if (event_mask & ev_order_book_update) {
 				auto ob = event->get_ob();
 
-				auto bid_price = get_price(ob, ob->bid_price(0));
-				auto bid_size = ob->bid_size(0);
-				auto ask_price = get_price(ob, ob->ask_price(0));
-				auto ask_size = ob->ask_size(0);
-
-				fprintf(output, "%6" PRIu64"  %6.3f  %6.3f  %-6" PRIu64" |",
-								bid_size,
-								bid_price,
-								ask_price,
-								ask_size
-				);
-
-				ts.bid_price = bid_price;
-				ts.bid_size = bid_size;
-				ts.ask_price = ask_price;
-				ts.ask_size = ask_size;
+				auto bid_level = ob->bid_level(0);
+				auto ask_level = ob->ask_level(0);
+				ts.bid_price = get_price(ob, bid_level.price);
+				ts.bid_size = bid_level.size;
+				ts.ask_price = get_price(ob, ask_level.price);
+				ts.ask_size = ask_level.size;
+				
+				if (ts.bid_price || ts.ask_size) {
+					fprintf(output, "%6" PRIu64"  %6.3f  %6.3f  %-6" PRIu64" |",
+									ts.bid_size,
+									ts.bid_price,
+									ts.ask_price,
+									ts.ask_size
+					);
+				}
+				else
+				{
+					fprintf(output, "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*|");
+				}
 			}
 			else {
 				fprintf(output, "                               |");
 			}
+
 			if (event_mask & ev_trade) {
 				auto ob = event->get_ob();
 				auto trade = event->get_trade();
@@ -192,6 +196,7 @@ namespace helix
 			else {
 				fprintf(output, "               |   |         |");
 			}
+			
 			std::string sweep_event;
 			if (event_mask & ev_sweep) {
 				sweep_event = " Y |";
@@ -199,6 +204,7 @@ namespace helix
 			else {
 				sweep_event = "   |";
 			}
+			
 			fprintf(output, "%s", sweep_event.c_str());
 			fprintf(output, "\n");
 			if (flush) {
@@ -250,7 +256,12 @@ namespace helix
 		get_session()->subscribe(symbol, 1000);
 	}
 
-	symbol_tracker_algo::~symbol_tracker_algo() = default;
+	symbol_tracker_algo::~symbol_tracker_algo() {
+		//_pool.stop();
+		//_pool.join();
+		get_event_pool()->join();
+		impl.reset();
+	}
 
   int symbol_tracker_algo::tick(event* ev) {
 		auto mask = ev->get_mask();
@@ -259,8 +270,8 @@ namespace helix
 			// TODO(): do whatever when bist opened or closed!
 			puts("bist opened/closed event consumed.");
 			impl->fmt_footer(session.get(), ev);
+			return 0;
 		}
-
 		if (mask & ev_order_book_update) {
 			auto ob = ev->get_ob();
 			process_ob_event(impl->get_ts(), ob, mask);
