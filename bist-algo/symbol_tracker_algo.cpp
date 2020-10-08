@@ -161,22 +161,28 @@ namespace helix
 
 				auto bid_level = ob->bid_level(0);
 				auto ask_level = ob->ask_level(0);
-				ts.bid_price = get_price(ob, bid_level.price);
-				ts.bid_size = bid_level.size;
-				ts.ask_price = get_price(ob, ask_level.price);
-				ts.ask_size = ask_level.size;
 				
-				if (ts.bid_price || ts.ask_size) {
-					fprintf(output, "%6" PRIu64"  %6.3f  %6.3f  %-6" PRIu64" |",
-									ts.bid_size,
-									ts.bid_price,
-									ts.ask_price,
-									ts.ask_size
-					);
+				auto bid_price = get_price(ob, bid_level.price);
+				auto bid_size = bid_level.size;
+				auto ask_price = get_price(ob, ask_level.price);
+				auto ask_size = ask_level.size;
+				
+				// burasý neden böyle mutlaka öðren!
+				if (!bid_price || !ask_size) {
+					fprintf(output, " ___*-*-*-*-*-*-*-*-*-*-*-*___ |");
 				}
 				else
 				{
-					fprintf(output, "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*|");
+					fprintf(output, "%6" PRIu64"  %6.3f  %6.3f  %-6" PRIu64" |",
+									bid_size,
+									bid_price,
+									ask_price,
+									ask_size
+					);
+					ts.bid_price = bid_price;
+					ts.bid_size = bid_size;
+					ts.ask_price = ask_price;
+					ts.ask_size = ask_size;
 				}
 			}
 			else {

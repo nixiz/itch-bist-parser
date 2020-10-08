@@ -408,7 +408,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	cfg.symbols = { "GARAN.E" };
+	cfg.symbols = { "AKBNK.E" };
 	//cfg.symbols = { "TSKB.E" };
 	cfg.max_orders = 200000;
 	for (auto&& symbol : cfg.symbols) {

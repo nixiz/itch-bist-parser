@@ -117,7 +117,7 @@ size_t itch_bist_handler::process_msg(const net::packet_view& packet)
   // trait ozellikleri ile belirtilebilir!
   // if constexpr (itch_bist_msg_traits<T>::should_process) { process_msg(..); }
 
-  if constexpr (false)
+  if constexpr (true)
   {
     // burada udp den gelecek olan veriler asenkron çalýþan algo order book thread'lerine gönderileceði
     // için, her thread içerisine kopyalanmasý gerekiyor.
@@ -126,10 +126,10 @@ size_t itch_bist_handler::process_msg(const net::packet_view& packet)
     // sonrasýnda burada farklý thread'de okunmasýný istemediðimiz basit paketleri
     // trait sýnýfý üzerinden kontrol ederek senktron çaðýrabiliriz
     post(_pool,
-         [=, buff = std::move(receive_buffer)]{
-           const T * msg = reinterpret_cast<const T*>(buff.data());
-    //auto pack = net::packet_view{buff.data(), buff.size()};
-    this->process_msg(msg);
+         [this, buff = std::move(receive_buffer)] {
+           const T* msg = reinterpret_cast<const T*>(buff.data());
+           //auto pack = net::packet_view{buff.data(), buff.size()};
+           this->process_msg(msg);
          });
   }
   else
