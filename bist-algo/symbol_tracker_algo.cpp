@@ -133,7 +133,7 @@ namespace helix
 			using namespace std::chrono;
 			auto* ts = reinterpret_cast<trace_session*>(session->data());
 			auto timestamp = event->get_timestamp();
-			if (!session->check_is_working_time(timestamp) || 
+			if (!session->is_rth_timestamp(timestamp) ||
 					!is_order_book_changed(session, event)) 
 			{
 				return;
@@ -148,7 +148,7 @@ namespace helix
 			const uint64_t seconds = lcltm->tm_sec;
 			const uint64_t milliseconds = timestamp % 1000000;
 			fprintf(output, "%s | %02" PRIu64":%02" PRIu64":%02" PRIu64".%06" PRIu64 " |",
-							event->get_symbol().c_str(),
+							event->get_symbol().data(),
 							hours, minutes, seconds, milliseconds);
 			auto event_mask = event->get_mask();
 			if (event_mask & ev_order_book_update) {
@@ -161,8 +161,8 @@ namespace helix
 
 				fprintf(output, "%6" PRIu64"  %6.3f  %6.3f  %-6" PRIu64" |",
 								bid_size,
-								(double)bid_price,
-								(double)ask_price,
+								bid_price,
+								ask_price,
 								ask_size
 				);
 

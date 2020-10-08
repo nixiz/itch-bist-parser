@@ -5,13 +5,9 @@
 #include "nasdaq/itch50_protocol.hh"
 #include "nasdaq/itch_bist_protocol.hh"
 #include "parity/pmd_protocol.hh"
-#include <boost/asio/ts/executor.hpp>
 #include "net.hh"
 #include <vector>
 
-using boost::asio::post;
-using boost::asio::thread_pool;
-using boost::asio::use_future;
 
 inline helix_order_book_t wrap(helix::order_book* ob)
 {
@@ -129,9 +125,27 @@ void* helix_session_data(helix_session_t session)
 
 bool helix_session_is_rth_timestamp(helix_session_t session, helix_timestamp_t timestamp)
 {
-  return unwrap(session)->check_is_working_time(timestamp);
+  return unwrap(session)->is_rth_timestamp(timestamp);
 }
 
+size_t helix_session_process_packet(helix_session_t session, const char* buf, size_t len)
+{
+  try {
+    return unwrap(session)->process_packet(helix::net::packet_view{ buf, len });
+  }
+  catch (const helix::unknown_message_type& e) {
+    (void)e;
+    return HELIX_ERROR_UNKNOWN_MESSAGE_TYPE;
+  }
+  catch (const helix::truncated_packet_error& e) {
+    (void)e;
+    return HELIX_ERROR_TRUNCATED_PACKET;
+  }
+  catch (...) {
+    return HELIX_ERROR_UNKNOWN;
+  }
+}
+/*
 bool helix::session::check_is_working_time(uint64_t timestamp) {
   auto fut = post(_pool, use_future(
     [=] {
@@ -185,13 +199,7 @@ size_t helix::session::received_packet(const net::packet_view& packet)
     return HELIX_ERROR_UNKNOWN;
   }
 }
-
-// C binding for session's msg handling
-size_t helix_session_process_packet(helix_session_t session, const char* buf, size_t len)
-{
-  // TODO(): burada lippincott func kullanarak err kodu döndürebilirsin.
-  return unwrap(session)->received_packet(helix::net::packet_view{ buf, len });
-}
+*/
 
 helix_event_mask_t helix_event_mask(helix_event_t ev)
 {
@@ -200,7 +208,7 @@ helix_event_mask_t helix_event_mask(helix_event_t ev)
 
 const char* helix_event_symbol(helix_event_t ev)
 {
-  return unwrap(ev)->get_symbol().c_str();
+  return unwrap(ev)->get_symbol().data();
 }
 
 helix_timestamp_t helix_event_timestamp(helix_event_t ev)

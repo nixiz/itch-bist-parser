@@ -201,6 +201,19 @@ namespace helix {
     return 0;
   }
 
+  price_level order_book::bid_level(size_t level) const
+  {
+    auto it = _bids.begin();
+    while (it != _bids.end() && level--) {
+      it++;
+    }
+    if (it != _bids.end()) {
+      auto&& level = it->second;
+      return level;
+    }
+    return price_level{};
+  }
+
   uint64_t order_book::ask_price(size_t level) const
   {
     std::scoped_lock lock(guard);
@@ -227,6 +240,19 @@ namespace helix {
       return level.size;
     }
     return 0;
+  }
+
+  price_level order_book::ask_level(size_t level) const
+  {
+    auto it = _asks.begin();
+    while (it != _asks.end() && level--) {
+      it++;
+    }
+    if (it != _asks.end()) {
+      auto&& level = it->second;
+      return level;
+    }
+    return price_level{};
   }
 
   uint64_t order_book::midprice(size_t level) const

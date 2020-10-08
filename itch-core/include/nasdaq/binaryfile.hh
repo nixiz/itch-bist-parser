@@ -34,8 +34,6 @@ public:
 
     void set_send_callback(send_callback send_cb) override;
 
-    size_t get_packet_length(const net::packet_view& packet) const override;
-
     size_t process_packet(const net::packet_view& packet) override;
 };
 
@@ -43,7 +41,6 @@ template<typename Handler>
 binaryfile_session<Handler>::binaryfile_session(void* data)
     : session{data}
 {
-  set_support_async_packet_handling(true);
 }
 
 template<typename Handler>
@@ -67,17 +64,6 @@ void binaryfile_session<Handler>::register_callback(event_callback callback)
 template<typename Handler>
 void binaryfile_session<Handler>::set_send_callback(send_callback send_cb)
 {
-}
-
-template<typename Handler>
-size_t binaryfile_session<Handler>::get_packet_length(const net::packet_view& packet) const
-{
-  uint16_t payload_len = swap_bytes(*packet.cast<uint16_t>());
-  if (!payload_len) {
-    // End of session.
-    return 0;
-  }
-  return payload_len + sizeof(uint16_t);
 }
 
 template<typename Handler>

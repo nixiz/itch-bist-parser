@@ -8,6 +8,12 @@
 #include <ctime>
 #include <iostream>
 #include <iomanip>
+#include <vector>
+#include <boost/asio/ts/executor.hpp>
+
+using boost::asio::post;
+using boost::asio::thread_pool;
+using boost::asio::use_future;
 
 namespace helix {
 
@@ -30,6 +36,12 @@ trade_sign itch_bist_trade_sign(side_type s)
   default:              throw std::invalid_argument(std::string("invalid argument"));
   }
 }
+
+itch_bist_handler::~itch_bist_handler() {
+  //_pool.stop();
+  _pool.join();
+}
+
 
 uint64_t itch_bist_handler::itch_bist_timestamp(uint32_t raw_timestamp)
 {
@@ -100,7 +112,20 @@ size_t itch_bist_handler::process_msg(const net::packet_view& packet)
   // Bu sayede hangi mesajin islenip islenmeyecegi, ne yapmasi gerektigi falan da
   // trait ozellikleri ile belirtilebilir!
   // if constexpr (itch_bist_msg_traits<T>::should_process) { process_msg(..); }
-  process_msg(packet.cast<T>());
+
+  // burada udp den gelecek olan veriler asenkron çalýþan algo order book thread'lerine gönderileceði
+  // için, her thread içerisine kopyalanmasý gerekiyor.
+  std::vector<char> receive_buffer{ packet.buf(), packet.end() };
+
+  // sonrasýnda burada farklý thread'de okunmasýný istemediðimiz basit paketleri
+  // trait sýnýfý üzerinden kontrol ederek senktron çaðýrabiliriz
+  post(_pool,
+       [=, buff = std::move(receive_buffer)]{
+         const T * msg = reinterpret_cast<const T*>(buff.data());
+         //auto pack = net::packet_view{buff.data(), buff.size()};
+         this->process_msg(msg);
+       });
+  //process_msg(packet.cast<T>());
   return sizeof(T);
 }
 

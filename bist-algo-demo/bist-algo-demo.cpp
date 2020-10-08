@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 		while (size > 0) {
 			int nr = 0;
 			for (auto alg : algos) {
-				nr = alg->get_session()->received_packet(helix::net::packet_view{ p, size });
+				nr = alg->get_session()->process_packet(helix::net::packet_view{ p, size });
 			}
 			p += nr;
 			size -= nr;

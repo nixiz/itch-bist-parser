@@ -14,8 +14,6 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include <boost/config.hpp>
-#include <boost/asio/thread_pool.hpp>
 
 namespace helix {
 
@@ -77,20 +75,20 @@ namespace helix {
     order_book* _ob;
     trade _trade;
     event_mask  _mask;
-    std::string _symbol;
+    std::string_view _symbol;
   public:
-    event(event_mask mask, std::string symbol, uint64_t timestamp, order_book* ob, trade);
+    event(event_mask mask, std::string_view symbol, uint64_t timestamp, order_book* ob, trade);
     event_mask get_mask() const;
-    const std::string& get_symbol() const;
+    std::string_view get_symbol() const;
     uint64_t get_timestamp() const;
     order_book* get_ob() const;
     trade* get_trade() const;
   };
 
-  std::shared_ptr<event> make_event(const std::string& symbol, uint64_t timestamp, order_book*, trade&&, event_mask mask = 0);
+  std::shared_ptr<event> make_event(std::string_view symbol, uint64_t timestamp, order_book*, trade&&, event_mask mask = 0);
   std::shared_ptr<event> make_sys_event(uint64_t timestamp, event_mask mask = 0);
-  std::shared_ptr<event> make_ob_event(const std::string& symbol, uint64_t timestamp, order_book*, event_mask mask = 0);
-  std::shared_ptr<event> make_trade_event(const std::string& symbol, uint64_t timestamp, order_book*, trade&&, event_mask mask = 0);
+  std::shared_ptr<event> make_ob_event(std::string_view symbol, uint64_t timestamp, order_book*, event_mask mask = 0);
+  std::shared_ptr<event> make_trade_event(std::string_view symbol, uint64_t timestamp, order_book*, trade&&, event_mask mask = 0);
 
   using event_callback = std::function<void(std::shared_ptr<event>)>;
 
@@ -102,17 +100,11 @@ namespace helix {
       : _data{ data }
     { }
 
-    virtual ~session()
-    {
-      //_pool.stop();
-      _pool.join();
-    }
+    virtual ~session() = default;
 
     void* data() const {
       return _data;
     }
-
-    bool check_is_working_time(uint64_t timestamp);
 
     virtual void subscribe(const std::string& symbol, size_t max_orders) = 0;
 
@@ -120,21 +112,11 @@ namespace helix {
 
     virtual void set_send_callback(send_callback callback) = 0;
 
-    size_t received_packet(const net::packet_view& packet);
-
-    boost::asio::thread_pool* get_event_pool() const {
-      return &_pool;
-    }
-
-  protected:
-    void set_support_async_packet_handling(bool b) { support_async_packet_handling = b; }
     virtual bool is_rth_timestamp(uint64_t timestamp) = 0;
-    virtual size_t get_packet_length(const net::packet_view& packet) const { return static_cast<size_t>(-1); }
     virtual size_t process_packet(const net::packet_view& packet) = 0;
+
   private:
-    bool support_async_packet_handling {false};
     void* _data;
-    mutable boost::asio::thread_pool _pool{ 1 };
   };
 
   class protocol {

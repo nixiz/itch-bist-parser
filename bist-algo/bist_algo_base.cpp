@@ -18,9 +18,11 @@ namespace helix
 				post(_pool, boost::bind(&algo_base::event_handled, this, ev));
 			});
 		_working = true;
+		//_session->register_callback(std::bind(&algo_base::event_handled, this));
 	}
 
 	algo_base::~algo_base() {
+		_session.reset();
 		//_pool.stop();
 		_pool.join();
 	}

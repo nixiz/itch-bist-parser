@@ -86,7 +86,7 @@ struct order_equal_to {
 
 /// \brief Price level is a time-prioritized list of orders with the same price.
 struct price_level {
-    explicit price_level(uint64_t price_)
+    explicit price_level(uint64_t price_ = 0)
         : price(price_)
         , size(0)
     { }
@@ -133,7 +133,7 @@ public:
     order_book(std::string symbol, uint64_t timestamp, size_t max_orders = 0);
     order_book(std::string symbol, uint64_t timestamp, uint16_t num_decimals_for_price, size_t max_orders = 0);
 
-    const std::string& symbol() const {
+    std::string_view symbol() const {
         return _symbol;
     }
 
@@ -178,8 +178,11 @@ public:
 
     uint64_t bid_price(size_t level) const;
     uint64_t bid_size (size_t level) const;
+    price_level bid_level(size_t level) const;
+
     uint64_t ask_price(size_t level) const;
     uint64_t ask_size (size_t level) const;
+    price_level ask_level(size_t level) const;
     uint64_t midprice (size_t level) const;
 
 private:
@@ -190,6 +193,8 @@ private:
 
     template<typename T>
     price_level& lookup_or_create(T& levels, uint64_t price);
+
+    friend class order_book_agent;
 };
 
 /// @}

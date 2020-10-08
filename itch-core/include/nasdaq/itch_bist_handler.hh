@@ -5,6 +5,7 @@
 #include "helix.hh"
 #include "net.hh"
 
+#include <boost/asio/thread_pool.hpp>
 #include <unordered_map>
 #include <vector>
 #include <memory>
@@ -39,12 +40,15 @@ private:
     std::unordered_map<std::string, size_t> _symbol_max_orders;
     //! Working utc time seconds. nanoseconds will be padded on all other messages
     std::chrono::seconds time_secs {0};
+    mutable boost::asio::thread_pool _pool{ 1 };
 public:
     itch_bist_handler() = default;
+    ~itch_bist_handler();
     bool is_rth_timestamp(uint64_t timestamp) const;
     void subscribe(std::string sym, size_t max_orders);
     void register_callback(event_callback callback);
     size_t process_packet(const net::packet_view& packet);
+
 private:
     template<typename T>
     size_t process_msg(const net::packet_view& packet);

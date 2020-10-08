@@ -102,6 +102,9 @@
     <ClInclude Include="include\nasdaq\itch_bist_protocol.hh">
       <Filter>Header Files\nasdaq</Filter>
     </ClInclude>
+    <ClInclude Include="order_book_agent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\nasdaq\itch50_handler.cc">
@@ -136,6 +139,9 @@
     </ClCompile>
     <ClCompile Include="src\nasdaq\itch_bist_protocol.cc">
       <Filter>Source Files\nasdaq</Filter>
+    </ClCompile>
+    <ClCompile Include="order_book_agent.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
