@@ -18,6 +18,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include <unordered_map>
 #include <memory_resource>
 
 namespace helix {
@@ -58,8 +59,8 @@ struct order final {
     uint64_t     id;
     uint64_t     price;
     uint64_t     quantity;
-    side_type    side;
     uint64_t     timestamp;
+    side_type    side;
 
     order(uint64_t id, uint64_t price, uint64_t quantity, side_type side, uint64_t timestamp)
         : level{nullptr}
@@ -69,6 +70,18 @@ struct order final {
         , side{side}
         , timestamp{timestamp}
     {}
+};
+
+struct order_hash {
+  size_t operator()(const order& ord) const {
+    return std::hash<decltype(order::id)>()(ord.id);
+  }
+};
+
+struct order_equal_to {
+  bool operator()(const order& lhs, const order& rhs) const {
+    return lhs.id == rhs.id;
+  }
 };
 
 /// \brief Price level is a time-prioritized list of orders with the same price.
@@ -105,16 +118,17 @@ class order_book {
                               >
                           >
                       >;
-    using iterator = order_set::iterator;
+    //using order_set = std::unordered_map<decltype(order::id), order>;
+    using iterator = order_set::const_iterator;
 
     std::string _symbol;
     std::string _state_name;
     uint64_t _timestamp;
     trading_state _state;
-    order_set _orders;
     uint16_t _num_decimals_for_price; // A value of 256 means that the instrument is traded in fractions (each fraction is 1/256). 
-    std::pmr::map<uint64_t, price_level, std::greater<uint64_t>> _bids;
-    std::pmr::map<uint64_t, price_level, std::less   <uint64_t>> _asks;
+    order_set _orders;
+    std::map<uint64_t, price_level, std::greater<uint64_t>> _bids;
+    std::map<uint64_t, price_level, std::less   <uint64_t>> _asks;
 public:
     order_book(std::string symbol, uint64_t timestamp, size_t max_orders = 0);
     order_book(std::string symbol, uint64_t timestamp, uint16_t num_decimals_for_price, size_t max_orders = 0);

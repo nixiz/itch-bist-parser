@@ -21,7 +21,7 @@ namespace helix
 	}
 
 	algo_base::~algo_base() {
-		_pool.stop();
+		//_pool.stop();
 		_pool.join();
 	}
 

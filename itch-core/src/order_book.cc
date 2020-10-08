@@ -27,9 +27,7 @@ namespace helix {
     , _state{ trading_state::unknown }
     , _num_decimals_for_price(num_decimals_for_price)
   {
-#if BOOST_VERSION >= 105600
     _orders.reserve(max_orders);
-#endif
   }
 
   void order_book::add(order order)
@@ -67,10 +65,12 @@ namespace helix {
     if (it == _orders.end()) {
       throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
     }
+    
     _orders.modify(it, [quantity](order& order) {
       order.quantity -= quantity;
       order.level->size -= quantity;
                    });
+
     if (!it->quantity) {
       remove(it);
     }

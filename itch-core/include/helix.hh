@@ -104,7 +104,7 @@ namespace helix {
 
     virtual ~session()
     {
-      _pool.stop();
+      //_pool.stop();
       _pool.join();
     }
 

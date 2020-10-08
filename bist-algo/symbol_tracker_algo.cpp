@@ -29,6 +29,7 @@ namespace helix
 		trace_fmt_ops() = default;
 		virtual ~trace_fmt_ops() {
 			if (output) {
+				fflush(output);
 				fclose(output);
 			}
 		}
@@ -50,6 +51,7 @@ namespace helix
 
 		virtual void fmt_header(void) = 0;
 		virtual void fmt_event(session* session, event* event) = 0;
+		virtual void fmt_footer(session* session, event* event) {}
 	protected:
 		FILE* output = NULL;
 		bool flush = false;
@@ -115,6 +117,15 @@ namespace helix
 			fprintf(output, "\tN: Sign non displayable\n");
 			fprintf(output, "Y: Sweep Event Flag\n");
 			fprintf(output, " SYMBOL  | Time Stamp USec |  BidSz   Bid$   Ask$   AskSz  |  Last$  LSize | T |  VWAP   | Y |\n");
+		}
+
+		void fmt_footer(session* session, event* event) override 
+		{
+			auto* ts = reinterpret_cast<trace_session*>(session->data());
+			if (event->get_mask() & ev_closed) {
+				fprintf(output, "quotes: %" PRId64  ", trades: %" PRId64 " , max levels: %zu, max orders: %zu\n", ts->quotes, ts->trades, ts->max_price_levels, ts->max_order_count);
+				fprintf(output, "volume (mio): %.4lf, notional (mio): %.4lf, VWAP: %.3lf, high: %.3lf, low: %.3lf\n", (double)ts->volume_shs * 1e-6, ts->volume_ccy * 1e-6, (ts->volume_ccy / (double)ts->volume_shs), ts->high, ts->low);
+			}
 		}
 
 		void fmt_event(session* session, event* event) override
@@ -185,13 +196,6 @@ namespace helix
 			}
 			fprintf(output, "%s", sweep_event.c_str());
 			fprintf(output, "\n");
-
-
-			if (event_mask & ev_closed) {
-				fprintf(output, "quotes: %" PRId64  ", trades: %" PRId64 " , max levels: %zu, max orders: %zu\n", ts->quotes, ts->trades, ts->max_price_levels, ts->max_order_count);
-				fprintf(output, "volume (mio): %.4lf, notional (mio): %.4lf, VWAP: %.3lf, high: %.3lf, low: %.3lf\n", (double)ts->volume_shs * 1e-6, ts->volume_ccy * 1e-6, (ts->volume_ccy / (double)ts->volume_shs), ts->high, ts->low);
-			}
-
 			if (flush) {
 				fflush(output);
 			}
@@ -321,6 +325,7 @@ namespace helix
 		if (mask & ev_opened || mask & ev_closed) {
 			// TODO(): do whatever when bist opened or closed!
 			puts("bist opened/closed event consumed.");
+			impl->fmt_footer(get_session(), ev);
 		}
 
 		if (mask & ev_order_book_update) {
