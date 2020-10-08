@@ -8,7 +8,7 @@
 ///
 ///   - \ref order-book Order book reconstruction and management.
 
-#include "order_book.hh"
+#include "order_book_agent.h"
 
 #include <cstddef>
 #include <vector>
@@ -72,23 +72,23 @@ namespace helix {
 
   class event {
     uint64_t    _timestamp;
-    order_book* _ob;
+    order_book_agent _ob;
     trade _trade;
     event_mask  _mask;
     std::string_view _symbol;
   public:
-    event(event_mask mask, std::string_view symbol, uint64_t timestamp, order_book* ob, trade);
+    event(event_mask mask, std::string_view symbol, uint64_t timestamp, order_book_agent&& ob, trade&&);
     event_mask get_mask() const;
     std::string_view get_symbol() const;
     uint64_t get_timestamp() const;
-    order_book* get_ob() const;
+    order_book_agent* get_ob() const;
     trade* get_trade() const;
   };
 
-  std::shared_ptr<event> make_event(std::string_view symbol, uint64_t timestamp, order_book*, trade&&, event_mask mask = 0);
+  std::shared_ptr<event> make_event(std::string_view symbol, uint64_t timestamp, order_book_agent&&, trade&&, event_mask mask = 0);
   std::shared_ptr<event> make_sys_event(uint64_t timestamp, event_mask mask = 0);
-  std::shared_ptr<event> make_ob_event(std::string_view symbol, uint64_t timestamp, order_book*, event_mask mask = 0);
-  std::shared_ptr<event> make_trade_event(std::string_view symbol, uint64_t timestamp, order_book*, trade&&, event_mask mask = 0);
+  std::shared_ptr<event> make_ob_event(std::string_view symbol, uint64_t timestamp, order_book_agent&&, event_mask mask = 0);
+  std::shared_ptr<event> make_trade_event(std::string_view symbol, uint64_t timestamp, order_book_agent&&, trade&&, event_mask mask = 0);
 
   using event_callback = std::function<void(std::shared_ptr<event>)>;
 
@@ -113,8 +113,8 @@ namespace helix {
     virtual void set_send_callback(send_callback callback) = 0;
 
     virtual bool is_rth_timestamp(uint64_t timestamp) = 0;
-    virtual size_t process_packet(const net::packet_view& packet) = 0;
 
+    virtual size_t process_packet(const net::packet_view& packet) = 0;
   private:
     void* _data;
   };

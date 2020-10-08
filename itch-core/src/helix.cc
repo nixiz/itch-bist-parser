@@ -9,14 +9,14 @@
 #include <vector>
 
 
-inline helix_order_book_t wrap(helix::order_book* ob)
+inline helix_order_book_t wrap(helix::order_book_agent* ob)
 {
   return reinterpret_cast<helix_order_book_t>(ob);
 }
 
-inline helix::order_book* unwrap(helix_order_book_t ob)
+inline helix::order_book_agent* unwrap(helix_order_book_t ob)
 {
-  return reinterpret_cast<helix::order_book*>(ob);
+  return reinterpret_cast<helix::order_book_agent*>(ob);
 }
 
 inline helix_trade_t wrap(helix::trade* ob)

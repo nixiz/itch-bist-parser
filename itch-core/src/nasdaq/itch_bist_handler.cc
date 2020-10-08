@@ -37,6 +37,10 @@ trade_sign itch_bist_trade_sign(side_type s)
   }
 }
 
+inline order_book_agent make_ob_agent(thread_pool* tp_, order_book* ob_) {
+  return order_book_agent{ tp_, ob_ };
+}
+
 itch_bist_handler::~itch_bist_handler() {
   //_pool.stop();
   _pool.join();
@@ -216,7 +220,7 @@ void itch_bist_handler::process_msg(const itch_bist_add_order* m)
     order o{ order_id, price, quantity, side, timestamp };
     ob.add(std::move(o));
     ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
+    _process_event(make_ob_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob)));
   }
 }
 
@@ -235,7 +239,7 @@ void itch_bist_handler::process_msg(const itch_bist_add_order_mpid* m)
     order o{ order_id, price, quantity, side, timestamp };
     ob.add(std::move(o));
     ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
+    _process_event(make_ob_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob)));
   }
 }
 
@@ -250,7 +254,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_executed* m)
     auto result = ob.execute(m->OrderID, quantity);
     ob.set_timestamp(timestamp);
     trade t{ timestamp, result.price, quantity, itch_bist_trade_sign(result.side) };
-    _process_event(make_event(ob.symbol(), timestamp, &ob, std::move(t), sweep_event(result)));
+    _process_event(make_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob), std::move(t), sweep_event(result)));
   }
 }
 
@@ -268,7 +272,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m
     case 'Y':
     {
       trade t{ timestamp, price, quantity, trade_sign::crossing };
-      _process_event(make_trade_event(ob.symbol(), timestamp, &ob, std::move(t)));
+      _process_event(make_trade_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob), std::move(t)));
     }
     break;
     case 'N':
@@ -277,7 +281,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m
       auto result = ob.execute(m->OrderID, quantity);
       ob.set_timestamp(timestamp);
       trade t{ timestamp, price, quantity, itch_bist_trade_sign(result.side) };
-      _process_event(make_event(ob.symbol(), timestamp, &ob, std::move(t), sweep_event(result)));
+      _process_event(make_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob), std::move(t), sweep_event(result)));
     }
     break;
     }
@@ -298,7 +302,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_replace* m)
     order o{ order_id, price, quantity, side, timestamp };
     ob.replace(m->OrderID, std::move(o));
     ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
+    _process_event(make_ob_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob)));
   }
 }
 
@@ -311,7 +315,7 @@ void itch_bist_handler::process_msg(const itch_bist_order_delete* m)
     ob.remove(m->OrderID);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, &ob));
+    _process_event(make_ob_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob)));
   }
 }
 
@@ -325,7 +329,7 @@ void itch_bist_handler::process_msg(const itch_bist_trade* m)
     auto& ob = it->second;
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     trade t{ timestamp, trade_price, quantity, trade_sign::non_displayable };
-    _process_event(make_trade_event(ob.symbol(), timestamp, &ob, std::move(t)));
+    _process_event(make_trade_event(ob.symbol(), timestamp, make_ob_agent(&_pool, &ob), std::move(t)));
   }
 }
 

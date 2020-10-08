@@ -7,9 +7,11 @@ namespace helix
   using boost::asio::thread_pool;
   class order_book_agent
   {
-    mutable thread_pool* ob_thread;
-    order_book* ob;
+    mutable thread_pool* ob_thread{ nullptr };
+    order_book* ob{ nullptr };
   public:
+    order_book_agent() = default;
+    order_book_agent(order_book* ob_);
     explicit order_book_agent(thread_pool* ob_thread_, order_book* ob_);
     
     std::string_view symbol() const;

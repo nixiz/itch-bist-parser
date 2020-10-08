@@ -69,7 +69,7 @@ namespace helix
 		}
 	}
 
-	static double get_price(order_book* ob, uint64_t price)
+	static double get_price(order_book_agent* ob, uint64_t price)
 	{
 		double p = 0.0;
 		[[unlikely]] if (auto dec = ob->decimals_for_price();
@@ -269,7 +269,7 @@ namespace helix
 	};
 #endif
 
-	static void process_ob_event(session* session, order_book* ob, event_mask event_mask)
+	static void process_ob_event(session* session, order_book_agent* ob, event_mask event_mask)
 	{
 		auto* ts = reinterpret_cast<trace_session*>(session->data());
 		size_t bid_levels = ob->bid_levels();
@@ -282,7 +282,7 @@ namespace helix
 		ts->quotes++;
 	}
 
-	static void process_trade_event(session* session, order_book* ob, trade* trade, event_mask event_mask)
+	static void process_trade_event(session* session, order_book_agent* ob, trade* trade, event_mask event_mask)
 	{
 		auto* ts = reinterpret_cast<trace_session*>(session->data());
 		double trade_price = get_price(ob, trade->price);

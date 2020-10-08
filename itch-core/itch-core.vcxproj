@@ -179,13 +179,12 @@
     <ClInclude Include="include\nasdaq\soupfile.hh" />
     <ClInclude Include="include\net.hh" />
     <ClInclude Include="include\order_book.hh" />
+    <ClInclude Include="include\order_book_agent.h" />
     <ClInclude Include="include\parity\pmd_handler.hh" />
     <ClInclude Include="include\parity\pmd_messages.h" />
     <ClInclude Include="include\parity\pmd_protocol.hh" />
-    <ClInclude Include="order_book_agent.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="order_book_agent.cpp" />
     <ClCompile Include="src\event.cc" />
     <ClCompile Include="src\helix.cc" />
     <ClCompile Include="src\nasdaq\itch50_handler.cc" />
@@ -195,6 +194,7 @@
     <ClCompile Include="src\nasdaq\nordic_itch_handler.cc" />
     <ClCompile Include="src\nasdaq\nordic_itch_protocol.cc" />
     <ClCompile Include="src\order_book.cc" />
+    <ClCompile Include="src\order_book_agent.cpp" />
     <ClCompile Include="src\parity\pmd_handler.cc" />
     <ClCompile Include="src\parity\pmd_protocol.cc" />
   </ItemGroup>
