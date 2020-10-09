@@ -32,7 +32,7 @@ private:
     //! Callback function for processing events.
     event_callback _process_event;
     //! A map of order books by order book ID.
-    std::unordered_map<std::string, std::unique_ptr<order_book_agent>> order_book_sym_map;
+    std::unordered_map<std::string, std::vector<std::unique_ptr<order_book_agent>>> order_book_sym_map;
     std::unordered_map<uint64_t, std::string> order_book_id_sym_map;
     //! A set of symbols that we are interested in.
     std::set<std::string> _symbols;
