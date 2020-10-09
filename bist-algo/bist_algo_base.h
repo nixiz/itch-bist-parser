@@ -75,10 +75,11 @@ namespace helix
 		std::shared_ptr<session> get_session();
 		std::shared_ptr<session> get_session() const;
 		
-		void register_callback()
+		void register_callback(std::string symbol)
 		{
 			auto session = _session.lock();
-			session->register_callback(
+			session->register_event(
+				symbol,
 				[this](std::shared_ptr<helix::event> ev)
 				{
 					// use internal event pool to trampoline event_handled in algo thread.

@@ -13,6 +13,9 @@
 #include <cstddef>
 #include <vector>
 #include <unordered_map>
+#include <vector>
+#include <future>
+#include <type_traits>
 #include <string>
 #include <memory>
 
@@ -97,8 +100,7 @@ namespace helix {
   class session {
   public:
     explicit session(void* data)
-      : _data{ data }
-    { }
+      : _data{ data } { }
 
     virtual ~session() = default;
 
@@ -106,18 +108,51 @@ namespace helix {
       return _data;
     }
 
+    void register_event(std::string symbol, event_callback fun)
+    {
+      subs.insert({symbol, {}});
+      subs.at(symbol).push_back(std::move(fun));
+      if (!is_registered)
+      {
+        this->register_callback(
+          [this](std::shared_ptr<event> ev)
+          {
+            if (auto it = subs.find(ev->get_symbol());
+                it != subs.end())
+            {
+              auto& sub_vec = it->second;
+              for (auto&& cb : sub_vec) {
+                cb(ev);
+              }
+            }
+            else if (ev->get_symbol().empty())
+            {
+              for (auto&& kvp : subs) {
+                for (auto&& cb : kvp.second) {
+                  cb(ev);
+                }
+              }
+            }
+          });
+        is_registered = true;
+      }
+    }
+    
+    virtual void register_callback(event_callback callback) = 0;
+
     virtual void register_for_symbol(std::string symbol, std::unique_ptr<order_book_agent> ob_agent) {}
 
     virtual std::string subscribe(const std::string& symbol, size_t max_orders) = 0;
-
-    virtual void register_callback(event_callback callback) = 0;
 
     virtual void set_send_callback(send_callback callback) = 0;
 
     virtual bool is_rth_timestamp(uint64_t timestamp) = 0;
 
     virtual size_t process_packet(const net::packet_view& packet) = 0;
+
   private:
+    std::unordered_map<std::string, std::vector<event_callback>> subs;
+    bool is_registered{ false };
     void* _data;
   };
 

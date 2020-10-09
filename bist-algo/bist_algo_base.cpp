@@ -8,7 +8,6 @@ namespace helix
 		: _session(std::move(s))
 	{
 		_working = true;
-		register_callback();
 	}
 	algo_base::~algo_base() = default;
 
@@ -19,6 +18,7 @@ namespace helix
 			ob_sym_map.insert({symb, order_book{symb, 0, max_order} });
 			auto& ob = ob_sym_map.at(symb);
 			get_session()->register_for_symbol(symb, std::make_unique<order_book_agent>(&_pool, &ob));
+			register_callback(symb);
 		}
 	}
 
