@@ -248,22 +248,26 @@ namespace helix
 
   symbol_tracker_algo* symbol_tracker_algo::create_new_algo(
 		std::weak_ptr<session> session, 
-		std::string symbol)
+		std::vector<std::string> symbol)
   {
-    return new symbol_tracker_algo(session, symbol);
+    return new symbol_tracker_algo(session, std::move(symbol));
   }
 
   symbol_tracker_algo::symbol_tracker_algo(
 		std::weak_ptr<session> s,
-		std::string symbol)
+		std::vector<std::string> symbols)
     : algo_base(s)
   {
 		impl.reset(new fmt_pretty_ops);
 		std::stringstream s_str;
-		s_str << "D:/hft/results/" << "result_" << symbol << ".out";
+		s_str << "D:/hft/results/" << "result_" << symbols.front() << ".out";
 		impl->init(s_str.str());
 		impl->fmt_header();
-		create_ob_with_symbols({{symbol, 1000}});
+		std::vector<std::pair<std::string, size_t>> vec; vec.reserve(symbols.size());
+		for (auto&& sym : symbols) {
+			vec.push_back({ sym, 1000 });
+		}
+		create_ob_with_symbols(std::move(vec));
 	}
 
 	symbol_tracker_algo::~symbol_tracker_algo() {

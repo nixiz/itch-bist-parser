@@ -21,22 +21,18 @@ int main(int argc, char* argv[])
 {
 	std::string input = argv[1];
 	std::ifstream input_fd;
-	/*
-		cfg.symbols = { "GARAN.E" };
-	//cfg.symbols = { "TSKB.E" };
-	cfg.max_orders = 200000;
-	*/
+
 	helix::nasdaq::itch_bist_protocol protocol{ "nasdaq-binaryfile-itch-bist" };
 	std::shared_ptr<session> session(protocol.new_session(nullptr));
 
 	std::vector<algo_base*> algos
 	{
-		symbol_tracker_algo::create_new_algo(session, "AKBNK.E "),
-		//symbol_tracker_algo::create_new_algo(session, "ASELS.E "),
-		//symbol_tracker_algo::create_new_algo(session, "ALCTL.E "),
-		//symbol_tracker_algo::create_new_algo(session, "BRSAN.E "),
-		//symbol_tracker_algo::create_new_algo(session, "HEKTS.E "),
-		symbol_tracker_algo::create_new_algo(session, "GARAN.E "),
+		symbol_tracker_algo::create_new_algo(session, {"AKBNK.E ", "GARAN.E "}),
+		symbol_tracker_algo::create_new_algo(session, {"ASELS.E "}),
+		symbol_tracker_algo::create_new_algo(session, {"ALCTL.E "}),
+		symbol_tracker_algo::create_new_algo(session, {"BRSAN.E "}),
+		symbol_tracker_algo::create_new_algo(session, {"HEKTS.E "}),
+		symbol_tracker_algo::create_new_algo(session, {"GARAN.E "}),
 	};
 	if (!input.empty())
 	{
