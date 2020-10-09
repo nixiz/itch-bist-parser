@@ -1,6 +1,9 @@
 #pragma once
 
 #include <helix.hh>
+#include <order_book.hh>
+#include <unordered_map>
+
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/ts/executor.hpp>
 
@@ -65,34 +68,30 @@ namespace helix
 
 		// all algo's should implement tick(). caclulation steps in every algorithm would be done in this thick event
 		virtual int tick(event* ev) = 0;
+
+		helix::order_book const* get_ob_for_sym(std::string sym) const;
+		helix::order_book* get_ob_for_sym(std::string sym);
 	protected:
 		std::shared_ptr<session> get_session();
 		std::shared_ptr<session> get_session() const;
 		
-		void register_and_subscribe(std::string symbol, size_t max_orders)
+		void register_callback()
 		{
 			auto session = _session.lock();
-			if constexpr (true)
-			{
-				session->register_for_symbol(
-					symbol,
-					[this](std::shared_ptr<helix::event> ev)
-					{
-						// use internal event pool to trampoline event_handled in algo thread.
-						post(_pool, boost::bind(&algo_base::event_handled, this, ev));
-					},
-					max_orders);
-			}
-			else
-			{
-				session->subscribe(symbol, max_orders);
-				session->register_callback(std::bind(&algo_base::event_handled, this, std::placeholders::_1));
-			}
+			session->register_callback(
+				[this](std::shared_ptr<helix::event> ev)
+				{
+					// use internal event pool to trampoline event_handled in algo thread.
+					dispatch(_pool, boost::bind(&algo_base::event_handled, this, ev));
+				});
 		}
+		virtual void create_ob_with_symbols(std::vector<std::pair<std::string, size_t>> symbols);
 
 		// all algo's should implement tick() loop and all the things will go under this loop
 		virtual int run() { return 0; } // run bi dursun þimdilik. boost thread pool olunca gerek kalmadý sanki.
 	private:
+		std::unordered_map<std::string, helix::order_book> ob_sym_map;
+
 		// for event_callback register
 		void event_handled(std::shared_ptr<event> ev);
 		bool _working {false};

@@ -48,15 +48,6 @@
     <ClInclude Include="include\nasdaq\binaryfile.hh">
       <Filter>Header Files\nasdaq</Filter>
     </ClInclude>
-    <ClInclude Include="include\nasdaq\itch50_handler.hh">
-      <Filter>Header Files\nasdaq</Filter>
-    </ClInclude>
-    <ClInclude Include="include\nasdaq\itch50_messages.h">
-      <Filter>Header Files\nasdaq</Filter>
-    </ClInclude>
-    <ClInclude Include="include\nasdaq\itch50_protocol.hh">
-      <Filter>Header Files\nasdaq</Filter>
-    </ClInclude>
     <ClInclude Include="include\nasdaq\moldudp.hh">
       <Filter>Header Files\nasdaq</Filter>
     </ClInclude>
@@ -67,15 +58,6 @@
       <Filter>Header Files\nasdaq</Filter>
     </ClInclude>
     <ClInclude Include="include\nasdaq\moldudp64_messages.h">
-      <Filter>Header Files\nasdaq</Filter>
-    </ClInclude>
-    <ClInclude Include="include\nasdaq\nordic_itch_handler.hh">
-      <Filter>Header Files\nasdaq</Filter>
-    </ClInclude>
-    <ClInclude Include="include\nasdaq\nordic_itch_messages.h">
-      <Filter>Header Files\nasdaq</Filter>
-    </ClInclude>
-    <ClInclude Include="include\nasdaq\nordic_itch_protocol.hh">
       <Filter>Header Files\nasdaq</Filter>
     </ClInclude>
     <ClInclude Include="include\nasdaq\soupfile.hh">
@@ -107,18 +89,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\nasdaq\itch50_handler.cc">
-      <Filter>Source Files\nasdaq</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nasdaq\itch50_protocol.cc">
-      <Filter>Source Files\nasdaq</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nasdaq\nordic_itch_handler.cc">
-      <Filter>Source Files\nasdaq</Filter>
-    </ClCompile>
-    <ClCompile Include="src\nasdaq\nordic_itch_protocol.cc">
-      <Filter>Source Files\nasdaq</Filter>
-    </ClCompile>
     <ClCompile Include="src\parity\pmd_handler.cc">
       <Filter>Source Files\parity</Filter>
     </ClCompile>

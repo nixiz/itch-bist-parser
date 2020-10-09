@@ -26,6 +26,7 @@ namespace helix {
     , _timestamp{ timestamp }
     , _state{ trading_state::unknown }
     , _num_decimals_for_price(num_decimals_for_price)
+    , _max_orders(max_orders)
   {
     _orders.reserve(max_orders);
   }
@@ -72,7 +73,7 @@ namespace helix {
                    });
 
     if (!it->quantity) {
-      remove(it);
+      remove_impl(it);
     }
   }
 
@@ -89,7 +90,7 @@ namespace helix {
                    });
     auto result = execution(it->price, it->side, it->level->size);
     if (!it->quantity) {
-      remove(it);
+      remove_impl(it);
     }
     return result;
   }
@@ -101,19 +102,19 @@ namespace helix {
     if (it == _orders.end()) {
       throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
     }
-    remove(it);
+    remove_impl(it);
   }
 
-  void order_book::remove(iterator& iter)
+  void order_book::remove_impl(iterator& iter)
   {
     auto&& order = *iter;
     switch (order.side) {
     case side_type::buy: {
-      remove(order, _bids);
+      remove_impl(order, _bids);
       break;
     }
     case side_type::sell: {
-      remove(order, _asks);
+      remove_impl(order, _asks);
       break;
     }
     default:
@@ -123,7 +124,7 @@ namespace helix {
   }
 
   template<typename T>
-  void order_book::remove(const order& o, T& levels)
+  void order_book::remove_impl(const order& o, T& levels)
   {
     auto it = levels.find(o.price);
     if (it == levels.end()) {

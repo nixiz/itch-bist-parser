@@ -73,23 +73,21 @@ namespace helix {
 
   class event {
     uint64_t    _timestamp;
-    order_book_agent _ob;
     trade _trade;
     event_mask  _mask;
-    std::string_view _symbol;
+    std::string _symbol;
   public:
-    event(event_mask mask, std::string_view symbol, uint64_t timestamp, order_book_agent&& ob, trade&&);
+    event(event_mask mask, std::string symbol, uint64_t timestamp, trade&&);
     event_mask get_mask() const;
-    std::string_view get_symbol() const;
+    std::string get_symbol() const;
     uint64_t get_timestamp() const;
-    order_book_agent* get_ob() const;
     trade* get_trade() const;
   };
 
-  std::shared_ptr<event> make_event(std::string_view symbol, uint64_t timestamp, order_book_agent&&, trade&&, event_mask mask = 0);
+  std::shared_ptr<event> make_event(std::string symbol, uint64_t timestamp, trade&&, event_mask mask = 0);
   std::shared_ptr<event> make_sys_event(uint64_t timestamp, event_mask mask = 0);
-  std::shared_ptr<event> make_ob_event(std::string_view symbol, uint64_t timestamp, order_book_agent&&, event_mask mask = 0);
-  std::shared_ptr<event> make_trade_event(std::string_view symbol, uint64_t timestamp, order_book_agent&&, trade&&, event_mask mask = 0);
+  std::shared_ptr<event> make_ob_event(std::string symbol, uint64_t timestamp, event_mask mask = 0);
+  std::shared_ptr<event> make_trade_event(std::string symbol, uint64_t timestamp, trade&&, event_mask mask = 0);
 
   //typedef void (*event_callback)(std::shared_ptr<event>);
   using event_callback = std::function<void(std::shared_ptr<event>)>;
@@ -108,34 +106,7 @@ namespace helix {
       return _data;
     }
 
-    void register_for_symbol(std::string symbol, 
-                             event_callback callback, 
-                             size_t max_orders = 1000)
-    {
-      symbol = subscribe(symbol, max_orders);
-      _subs[symbol].push_back(std::move(callback));
-      register_callback([&] (std::shared_ptr<event> ev)
-                        {
-                          std::string symb(ev->get_symbol());
-                          if (auto it = _subs.find(symb);
-                                   it != _subs.end())
-                          {
-                            for (auto&& cb : it->second) {
-                              cb(ev);
-                            }
-                          }
-                          else if (symb.empty()) // means broadcast message
-                          {
-                            for (auto&& kvp : _subs) {
-                              for (auto&& cb : kvp.second) {
-                                cb(ev);
-                              }
-                            }
-                          }
-                        });
-    }
-
-    virtual void stop() {}
+    virtual void register_for_symbol(std::string symbol, std::unique_ptr<order_book_agent> ob_agent) {}
 
     virtual std::string subscribe(const std::string& symbol, size_t max_orders) = 0;
 
@@ -147,7 +118,6 @@ namespace helix {
 
     virtual size_t process_packet(const net::packet_view& packet) = 0;
   private:
-    std::unordered_map<std::string, std::vector<event_callback>> _subs;
     void* _data;
   };
 

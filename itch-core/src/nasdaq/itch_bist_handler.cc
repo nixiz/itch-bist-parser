@@ -41,13 +41,7 @@ inline order_book_agent make_ob_agent(thread_pool* tp_, order_book* ob_) {
   return order_book_agent{ tp_, ob_ };
 }
 
-itch_bist_handler::~itch_bist_handler() {
-  stop();
-}
-
-void itch_bist_handler::stop() {
-  _pool.join();
-}
+itch_bist_handler::~itch_bist_handler() = default;
 
 uint64_t itch_bist_handler::itch_bist_timestamp(uint32_t raw_timestamp)
 {
@@ -70,6 +64,23 @@ bool itch_bist_handler::is_rth_timestamp(uint64_t timestamp) const
   return true;
 }
 
+void itch_bist_handler::register_for_symbol(
+  std::string symbol, 
+  std::unique_ptr<order_book_agent> ob_agent)
+{
+  auto padding = ITCH_SYMBOL_LEN - symbol.size();
+  if (padding > 0) {
+    symbol.insert(symbol.size(), padding, ' ');
+  }
+  _symbols.insert(symbol);
+  _symbol_max_orders.emplace(symbol, ob_agent->max_orders());
+  size_t max_all_orders = 0;
+  for (auto&& kv : _symbol_max_orders) {
+    max_all_orders += kv.second;
+  }
+  order_book_sym_map.insert({ symbol, std::move(ob_agent) });
+}
+
 std::string itch_bist_handler::subscribe(std::string sym, size_t max_orders) {
   auto padding = ITCH_SYMBOL_LEN - sym.size();
   if (padding > 0) {
@@ -81,7 +92,7 @@ std::string itch_bist_handler::subscribe(std::string sym, size_t max_orders) {
   for (auto&& kv : _symbol_max_orders) {
     max_all_orders += kv.second;
   }
-  order_book_id_map.reserve(max_all_orders);
+  order_book_sym_map.reserve(max_all_orders);
   return sym;
 }
 
@@ -120,25 +131,7 @@ size_t itch_bist_handler::process_msg(const net::packet_view& packet)
   // trait ozellikleri ile belirtilebilir!
   // if constexpr (itch_bist_msg_traits<T>::should_process) { process_msg(..); }
 
-  if constexpr (true)
-  {
-    // burada udp den gelecek olan veriler asenkron çalýþan algo order book thread'lerine gönderileceði
-    // için, her thread içerisine kopyalanmasý gerekiyor.
-    std::vector<char> receive_buffer{ packet.buf(), packet.end() };
-
-    // sonrasýnda burada farklý thread'de okunmasýný istemediðimiz basit paketleri
-    // trait sýnýfý üzerinden kontrol ederek senktron çaðýrabiliriz
-    post(_pool,
-         [this, buff = std::move(receive_buffer)] {
-           const T* msg = reinterpret_cast<const T*>(buff.data());
-           //auto pack = net::packet_view{buff.data(), buff.size()};
-           this->process_msg(msg);
-         });
-  }
-  else
-  {
-    process_msg(packet.cast<T>());
-  }
+  process_msg(packet.cast<T>());
   return sizeof(T);
 }
 
@@ -163,14 +156,13 @@ void itch_bist_handler::process_msg(const itch_bist_seconds* m)
 void itch_bist_handler::process_msg(const itch_bist_order_book_directory* m)
 {
   std::string sym{ m->Symbol, ITCH_SYMBOL_LEN };
-  if (_symbols.count(sym) > 0) {
-    order_book ob{ 
-      sym, 
-      itch_bist_timestamp(m->TimestampNanoseconds),  
-      swap_bytes(m->NumberOfDecimalsInPrice), 
-      _symbol_max_orders.at(sym) 
-    };
-    order_book_id_map.insert({ m->OrderBookID, std::move(ob) });
+  if (auto it = order_book_sym_map.find(sym);
+      it != order_book_sym_map.end())
+  {
+    order_book_id_sym_map.insert({ m->OrderBookID,  sym });
+    auto& ob = it->second;
+    ob->set_timestamp(itch_bist_timestamp(m->TimestampNanoseconds));
+    ob->set_decimals_for_price(swap_bytes(m->NumberOfDecimalsInPrice));
   }
 }
 
@@ -207,19 +199,19 @@ void itch_bist_handler::process_msg(const itch_bist_system_event* m)
 
 void itch_bist_handler::process_msg(const itch_bist_order_book_state* m)
 {
-  auto it = order_book_id_map.find(m->OrderBookID);
-  if (it != order_book_id_map.end()) {
-    auto& ob = it->second;
-    ob.set_state_name(std::move(std::string(m->StateName)));
+  auto it = order_book_id_sym_map.find(m->OrderBookID);
+  if (it != order_book_id_sym_map.end()) {
+    auto& ob = order_book_sym_map[it->second];
+    ob->set_state_name(std::string(m->StateName));
   }
 }
 
 void itch_bist_handler::process_msg(const itch_bist_add_order* m)
 {  
-  if (auto it = order_book_id_map.find(m->OrderBookID); 
-      it != order_book_id_map.end()) 
+  if (auto it = order_book_id_sym_map.find(m->OrderBookID);
+      it != order_book_id_sym_map.end())
   {
-    auto& ob = it->second;
+    auto& ob = order_book_sym_map[it->second];
 
     auto order_id = m->OrderID;
     auto price = swap_bytes(m->Price);
@@ -227,18 +219,18 @@ void itch_bist_handler::process_msg(const itch_bist_add_order* m)
     auto side = itch_bist_side(m->Side);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     order o{ order_id, price, quantity, side, timestamp };
-    ob.add(std::move(o));
-    ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, order_book_agent{&_pool, &ob}));
+    ob->add(std::move(o));
+    ob->set_timestamp(timestamp);
+    _process_event(make_ob_event(it->second, timestamp));
   }
 }
 
 void itch_bist_handler::process_msg(const itch_bist_add_order_mpid* m)
 { 
-  if (auto it = order_book_id_map.find(m->OrderBookID); 
-      it != order_book_id_map.end()) 
+  if (auto it = order_book_id_sym_map.find(m->OrderBookID);
+      it != order_book_id_sym_map.end())
   {
-    auto& ob = it->second;
+    auto& ob = order_book_sym_map[it->second];
 
     auto order_id = m->OrderID;
     auto price = swap_bytes(m->Price);
@@ -246,51 +238,51 @@ void itch_bist_handler::process_msg(const itch_bist_add_order_mpid* m)
     auto side = itch_bist_side(m->Side);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     order o{ order_id, price, quantity, side, timestamp };
-    ob.add(std::move(o));
-    ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, order_book_agent{ &_pool, &ob }));
+    ob->add(std::move(o));
+    ob->set_timestamp(timestamp);
+    _process_event(make_ob_event(it->second, timestamp));
   }
 }
 
 void itch_bist_handler::process_msg(const itch_bist_order_executed* m)
 {  
-  if (auto it = order_book_id_map.find(m->OrderBookID); 
-      it != order_book_id_map.end()) 
+  if (auto it = order_book_id_sym_map.find(m->OrderBookID);
+      it != order_book_id_sym_map.end())
   {
     auto quantity = swap_bytes(m->ExecutedQuantity);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
-    auto& ob = it->second;
-    auto result = ob.execute(m->OrderID, quantity);
-    ob.set_timestamp(timestamp);
+    auto& ob = order_book_sym_map[it->second];
+    auto result = ob->execute(m->OrderID, quantity);
+    ob->set_timestamp(timestamp);
     trade t{ timestamp, result.price, quantity, itch_bist_trade_sign(result.side) };
-    _process_event(make_event(ob.symbol(), timestamp, order_book_agent{ &_pool, &ob }, std::move(t), sweep_event(result)));
+    _process_event(make_event(it->second, timestamp, std::move(t), sweep_event(result)));
   }
 }
 
 void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m)
 {
-  if (auto it = order_book_id_map.find(m->OrderBookID);
-      it != order_book_id_map.end()) 
+  if (auto it = order_book_id_sym_map.find(m->OrderBookID);
+      it != order_book_id_sym_map.end())
   {
     auto quantity = swap_bytes(m->ExecutedQuantity);
     auto price = swap_bytes(m->TradePrice);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
-    auto& ob = it->second;
+    auto& ob = order_book_sym_map[it->second];
     switch (m->OccurredAtCross)
     {
     case 'Y':
     {
       trade t{ timestamp, price, quantity, trade_sign::crossing };
-      _process_event(make_trade_event(ob.symbol(), timestamp, order_book_agent{ &_pool, &ob }, std::move(t)));
+      _process_event(make_trade_event(it->second, timestamp, std::move(t)));
     }
     break;
     case 'N':
     default:
     {
-      auto result = ob.execute(m->OrderID, quantity);
-      ob.set_timestamp(timestamp);
+      auto result = ob->execute(m->OrderID, quantity);
+      ob->set_timestamp(timestamp);
       trade t{ timestamp, price, quantity, itch_bist_trade_sign(result.side) };
-      _process_event(make_event(ob.symbol(), timestamp, order_book_agent{ &_pool, &ob }, std::move(t), sweep_event(result)));
+      _process_event(make_event(it->second, timestamp, std::move(t), sweep_event(result)));
     }
     break;
     }
@@ -299,46 +291,46 @@ void itch_bist_handler::process_msg(const itch_bist_order_executed_with_price* m
 
 void itch_bist_handler::process_msg(const itch_bist_order_replace* m)
 {  
-  if (auto it = order_book_id_map.find(m->OrderBookID);
-      it != order_book_id_map.end()) 
+  if (auto it = order_book_id_sym_map.find(m->OrderBookID);
+      it != order_book_id_sym_map.end())
   {
-    auto& ob = it->second;
-    auto side = ob.side(m->OrderID);
+    auto& ob = order_book_sym_map[it->second];
+    auto side = ob->side(m->OrderID);
     auto order_id = m->NewOrderBookPosition;
     auto price = swap_bytes(m->Price);
     auto quantity = swap_bytes(m->Quantity);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     order o{ order_id, price, quantity, side, timestamp };
-    ob.replace(m->OrderID, std::move(o));
-    ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, order_book_agent{ &_pool, &ob }));
+    ob->replace(m->OrderID, std::move(o));
+    ob->set_timestamp(timestamp);
+    _process_event(make_ob_event(it->second, timestamp));
   }
 }
 
 void itch_bist_handler::process_msg(const itch_bist_order_delete* m)
 {
-  if (auto it = order_book_id_map.find(m->OrderBookID); 
-      it != order_book_id_map.end()) 
+  if (auto it = order_book_id_sym_map.find(m->OrderBookID);
+      it != order_book_id_sym_map.end())
   {
-    auto& ob = it->second;
-    ob.remove(m->OrderID);
+    auto& ob = order_book_sym_map[it->second];
+    ob->remove(m->OrderID);
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
-    ob.set_timestamp(timestamp);
-    _process_event(make_ob_event(ob.symbol(), timestamp, order_book_agent{ &_pool, &ob }));
+    ob->set_timestamp(timestamp);
+    _process_event(make_ob_event(it->second, timestamp));
   }
 }
 
 void itch_bist_handler::process_msg(const itch_bist_trade* m)
 {
-  if (auto it = order_book_id_map.find(m->OrderBookID); 
-      it != order_book_id_map.end()) 
+  if (auto it = order_book_id_sym_map.find(m->OrderBookID);
+      it != order_book_id_sym_map.end())
   {
     auto trade_price = swap_bytes(m->TradePrice);
     auto quantity = swap_bytes(m->Quantity);
-    auto& ob = it->second;
+    auto& ob = order_book_sym_map[it->second];
     auto timestamp = itch_bist_timestamp(m->TimestampNanoseconds);
     trade t{ timestamp, trade_price, quantity, trade_sign::non_displayable };
-    _process_event(make_trade_event(ob.symbol(), timestamp, order_book_agent{ &_pool, &ob }, std::move(t)));
+    _process_event(make_trade_event(it->second, timestamp, std::move(t)));
   }
 }
 

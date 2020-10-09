@@ -97,14 +97,14 @@ struct price_level {
 
 /// \brief Order execution details.
 struct execution {
-    //! The price order was executed with.
-    uint64_t price;
-    //! The side of the liquidity taker of the trade.
-    side_type side;
-    //! The number of remaining quantity on the traded price level.
-    uint64_t remaining;
-
-    execution(uint64_t price, side_type side, uint64_t remaining);
+  //! The price order was executed with.
+  uint64_t price {0};
+  //! The side of the liquidity taker of the trade.
+  side_type side{0};
+  //! The number of remaining quantity on the traded price level.
+  uint64_t remaining{ 0 };
+  execution() = default;
+  execution(uint64_t price, side_type side, uint64_t remaining);
 };
 
 /// \brief Order book is a price-time prioritized list of buy and sell
@@ -127,6 +127,7 @@ class order_book {
     trading_state _state;
     uint16_t _num_decimals_for_price; // A value of 256 means that the instrument is traded in fractions (each fraction is 1/256). 
     order_set _orders;
+    size_t _max_orders;
     std::map<uint64_t, price_level, std::greater<uint64_t>> _bids;
     std::map<uint64_t, price_level, std::less   <uint64_t>> _asks;
 public:
@@ -161,8 +162,16 @@ public:
       return _state_name;
     }
 
+    void set_decimals_for_price(uint16_t dec) {
+      _num_decimals_for_price = dec;
+    }
+
     uint16_t decimals_for_price() const {
       return _num_decimals_for_price;
+    }
+
+    size_t max_orders() const {
+      return _max_orders;
     }
 
     void add(order order);
@@ -186,10 +195,10 @@ public:
     uint64_t midprice (size_t level) const;
 
 private:
-    void remove(iterator& iter);
+    void remove_impl(iterator& iter);
 
     template<typename T>
-    void remove(const order& o, T& levels);
+    void remove_impl(const order& o, T& levels);
 
     template<typename T>
     price_level& lookup_or_create(T& levels, uint64_t price);

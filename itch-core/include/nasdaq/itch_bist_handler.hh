@@ -1,21 +1,15 @@
 #pragma once
 
 #include "nasdaq/itch_bist_messages.h"
-#include "order_book.hh"
+#include "order_book_agent.h"
 #include "helix.hh"
 #include "net.hh"
 
-#include <boost/asio/thread_pool.hpp>
-#include <boost/asio/ts/executor.hpp>
 #include <unordered_map>
 #include <vector>
 #include <memory>
 #include <set>
 #include <chrono>
-
-using boost::asio::post;
-using boost::asio::thread_pool;
-using boost::asio::use_future;
 
 namespace helix {
 
@@ -38,14 +32,14 @@ private:
     //! Callback function for processing events.
     event_callback _process_event;
     //! A map of order books by order book ID.
-    std::unordered_map<uint64_t, helix::order_book> order_book_id_map;
+    std::unordered_map<std::string, std::unique_ptr<order_book_agent>> order_book_sym_map;
+    std::unordered_map<uint64_t, std::string> order_book_id_sym_map;
     //! A set of symbols that we are interested in.
     std::set<std::string> _symbols;
     //! A map of pre-allocation size by symbol.
     std::unordered_map<std::string, size_t> _symbol_max_orders;
     //! Working utc time seconds. nanoseconds will be padded on all other messages
     std::chrono::seconds time_secs {0};
-    mutable thread_pool _pool{ 1 };
 public:
     itch_bist_handler() = default;
     ~itch_bist_handler();
@@ -53,8 +47,7 @@ public:
     std::string subscribe(std::string sym, size_t max_orders);
     void register_callback(event_callback callback);
     size_t process_packet(const net::packet_view& packet);
-    void stop();
-
+    void register_for_symbol(std::string symbol, std::unique_ptr<order_book_agent> ob_agent);
 private:
     template<typename T>
     size_t process_msg(const net::packet_view& packet);

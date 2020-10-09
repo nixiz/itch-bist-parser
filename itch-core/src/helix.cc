@@ -1,10 +1,7 @@
 #include "extern-c/helix.h"
 
 #include "compat/endian.h"
-#include "nasdaq/nordic_itch_protocol.hh"
-#include "nasdaq/itch50_protocol.hh"
 #include "nasdaq/itch_bist_protocol.hh"
-#include "parity/pmd_protocol.hh"
 #include "net.hh"
 #include <vector>
 
@@ -71,15 +68,6 @@ const char* helix_strerror(int error)
 
 helix_protocol_t helix_protocol_lookup(const char* name)
 {
-  if (helix::nasdaq::nordic_itch_protocol::supports(name)) {
-    return wrap(new helix::nasdaq::nordic_itch_protocol{ name });
-  }
-  if (helix::nasdaq::itch50_protocol::supports(name)) {
-    return wrap(new helix::nasdaq::itch50_protocol{ name });
-  }
-  if (helix::parity::pmd_protocol::supports(name)) {
-    return wrap(new helix::parity::pmd_protocol{ name });
-  }
   if (helix::nasdaq::itch_bist_protocol::supports(name)) {
     return wrap(new helix::nasdaq::itch_bist_protocol{ name });
   }
@@ -218,7 +206,8 @@ helix_timestamp_t helix_event_timestamp(helix_event_t ev)
 
 helix_order_book_t helix_event_order_book(helix_event_t ev)
 {
-  return wrap(unwrap(ev)->get_ob());
+  //return wrap(unwrap(ev)->get_ob());
+  return nullptr;
 }
 
 helix_trade_t helix_event_trade(helix_event_t ev)

@@ -36,7 +36,7 @@ public:
 
     size_t process_packet(const net::packet_view& packet) override;
 
-    void stop() override;
+    void register_for_symbol(std::string symbol, std::unique_ptr<order_book_agent> ob_agent) override;
 };
 
 template<typename Handler>
@@ -64,9 +64,9 @@ void binaryfile_session<Handler>::register_callback(event_callback callback)
 }
 
 template<typename Handler>
-void binaryfile_session<Handler>::stop()
+void binaryfile_session<Handler>::register_for_symbol(std::string symbol, std::unique_ptr<order_book_agent> ob_agent) 
 {
-  _handler.stop();
+  _handler.register_for_symbol(symbol, std::move(ob_agent));
 }
 
 template<typename Handler>

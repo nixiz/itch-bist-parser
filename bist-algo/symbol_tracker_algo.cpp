@@ -55,7 +55,7 @@ namespace helix
 		}
 
 		virtual void fmt_header(void) = 0;
-		virtual void fmt_event(session* session, event* event) = 0;
+		virtual void fmt_event(session* session, order_book* ob, event* event) = 0;
 		virtual void fmt_footer(session* session, event* event) {}
 	protected:
 		FILE* output = NULL;
@@ -75,7 +75,7 @@ namespace helix
 		}
 	}
 
-	static double get_price(order_book_agent* ob, uint64_t price)
+	static double get_price(order_book* ob, uint64_t price)
 	{
 		double p = 0.0;
 		[[unlikely]] if (auto dec = ob->decimals_for_price();
@@ -135,7 +135,7 @@ namespace helix
 			}
 		}
 
-		void fmt_event(session* session, event* event) override
+		void fmt_event(session* session, order_book* ob, event* event) override
 		{
 			using namespace std::chrono;
 			auto timestamp = event->get_timestamp();
@@ -151,8 +151,6 @@ namespace helix
 			const uint64_t minutes = lcltm->tm_min;
 			const uint64_t seconds = lcltm->tm_sec;
 			const uint64_t milliseconds = timestamp % 1000000;
-
-			auto ob = event->get_ob();
 
 			auto bid_level = ob->bid_level(0);
 			auto ask_level = ob->ask_level(0);
@@ -197,7 +195,6 @@ namespace helix
 			}
 
 			if (event_mask & ev_trade) {
-				auto ob = event->get_ob();
 				auto trade = event->get_trade();
 				fprintf(output, " %6.3f %6" PRIu64 " | %c | %6.3f  |",
 								get_price(ob, trade->price),
@@ -226,7 +223,7 @@ namespace helix
 		}
 	};
 
-	static void process_ob_event(trace_session* ts, order_book_agent* ob, event_mask event_mask)
+	static void process_ob_event(trace_session* ts, order_book* ob, event_mask event_mask)
 	{
 		size_t bid_levels = ob->bid_levels();
 		size_t ask_levels = ob->ask_levels();
@@ -238,7 +235,7 @@ namespace helix
 		ts->quotes++;
 	}
 
-	static void process_trade_event(trace_session* ts, order_book_agent* ob, trade* trade, event_mask event_mask)
+	static void process_trade_event(trace_session* ts, order_book* ob, trade* trade, event_mask event_mask)
 	{
 		double trade_price = get_price(ob, trade->price);
 		uint64_t trade_size = trade->size;
@@ -266,8 +263,7 @@ namespace helix
 		s_str << "D:/hft/results/" << "result_" << symbol << ".out";
 		impl->init(s_str.str());
 		impl->fmt_header();
-		register_and_subscribe(symbol, 1000);
-		//get_session()->subscribe(symbol, 1000);
+		create_ob_with_symbols({{symbol, 1000}});
 	}
 
 	symbol_tracker_algo::~symbol_tracker_algo() {
@@ -286,16 +282,15 @@ namespace helix
 			impl->fmt_footer(session.get(), ev);
 			return 0;
 		}
+		auto ob = get_ob_for_sym(ev->get_symbol());
 		if (mask & ev_order_book_update) {
-			auto ob = ev->get_ob();
 			process_ob_event(impl->get_ts(), ob, mask);
 		}
 		if (mask & ev_trade) {
-			auto ob = ev->get_ob();
 			auto trade = ev->get_trade();
 			process_trade_event(impl->get_ts(), ob, trade, mask);
 		}
-		impl->fmt_event(session.get(), ev);
+		impl->fmt_event(session.get(), ob, ev);
 		return 0;
 	}
 
