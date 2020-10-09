@@ -32,11 +32,11 @@ int main(int argc, char* argv[])
 	std::vector<algo_base*> algos
 	{
 		symbol_tracker_algo::create_new_algo(session, "AKBNK.E"),
-		//symbol_tracker_algo::create_new_algo(session, "ASELS.E"),
-		//symbol_tracker_algo::create_new_algo(session, "ALCTL.E"),
-		//symbol_tracker_algo::create_new_algo(session, "BRSAN.E"),
-		//symbol_tracker_algo::create_new_algo(session, "HEKTS.E"),
-		//symbol_tracker_algo::create_new_algo(session, "GARAN.E"),
+		symbol_tracker_algo::create_new_algo(session, "ASELS.E"),
+		symbol_tracker_algo::create_new_algo(session, "ALCTL.E"),
+		symbol_tracker_algo::create_new_algo(session, "BRSAN.E"),
+		symbol_tracker_algo::create_new_algo(session, "HEKTS.E"),
+		symbol_tracker_algo::create_new_algo(session, "GARAN.E"),
 	};
 	if (!input.empty())
 	{
@@ -55,21 +55,10 @@ int main(int argc, char* argv[])
 		}
 	}
 	//session->stop();
-	//std::this_thread::sleep_for(std::chrono::seconds(1));
+	//std::this_thread::sleep_for(std::chrono::seconds(100));
 	for (auto&& algo : algos) {
 		delete algo;
 	}
 	algos.clear();
 	session.reset();
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

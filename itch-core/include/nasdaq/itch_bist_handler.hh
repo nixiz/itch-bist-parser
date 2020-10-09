@@ -6,11 +6,16 @@
 #include "net.hh"
 
 #include <boost/asio/thread_pool.hpp>
+#include <boost/asio/ts/executor.hpp>
 #include <unordered_map>
 #include <vector>
 #include <memory>
 #include <set>
 #include <chrono>
+
+using boost::asio::post;
+using boost::asio::thread_pool;
+using boost::asio::use_future;
 
 namespace helix {
 
@@ -40,7 +45,7 @@ private:
     std::unordered_map<std::string, size_t> _symbol_max_orders;
     //! Working utc time seconds. nanoseconds will be padded on all other messages
     std::chrono::seconds time_secs {0};
-    mutable boost::asio::thread_pool _pool{ 1 };
+    mutable thread_pool _pool{ 1 };
 public:
     itch_bist_handler() = default;
     ~itch_bist_handler();
