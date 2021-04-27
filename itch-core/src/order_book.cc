@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <limits>
 #include <mutex>
+#include <fmt/core.h>
 
 namespace helix {
   std::mutex guard;
@@ -12,8 +13,8 @@ namespace helix {
     : price{ price }
     , side{ side }
     , remaining{ remaining }
-  {
-  }
+    , is_valid{ true }
+  { }
 
   order_book::order_book(std::string symbol, uint64_t timestamp, size_t max_orders)
     : order_book(symbol, timestamp, 0, max_orders) { }
@@ -64,7 +65,9 @@ namespace helix {
     //std::scoped_lock lock(guard);
     auto it = _orders.find(order_id);
     if (it == _orders.end()) {
-      throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
+      fmt::print("\norder_book::cancel()::order id: {} with symbol: {}", order_id, this->symbol());
+      return;
+      //throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
     }
     
     _orders.modify(it, [quantity](order& order) {
@@ -82,7 +85,9 @@ namespace helix {
     //std::scoped_lock lock(guard);
     auto it = _orders.find(order_id);
     if (it == _orders.end()) {
-      throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
+      fmt::print("\norder_book::execute()::order id: {} with symbol: {}", order_id, this->symbol());
+      return execution{};
+      //throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
     }
     _orders.modify(it, [quantity](order& order) {
       order.quantity -= quantity;
@@ -100,7 +105,9 @@ namespace helix {
     //std::scoped_lock lock(guard);
     auto it = _orders.find(order_id);
     if (it == _orders.end()) {
-      throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
+      fmt::print("\norder_book::remove()order id: {} with symbol: {}", order_id, this->symbol());
+      return;
+      //throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
     }
     remove_impl(it);
   }
@@ -128,7 +135,9 @@ namespace helix {
   {
     auto it = levels.find(o.price);
     if (it == levels.end()) {
-      throw std::invalid_argument(std::string("invalid price: ") + std::to_string(o.price));
+      fmt::print("\norder_book::remove_impl<T>() price: {} with symbol: {}", o.price, this->symbol());
+      return;
+      //throw std::invalid_argument(std::string("invalid price: ") + std::to_string(o.price));
     }
     auto&& level = it->second;
     o.level->size -= o.quantity;
@@ -150,7 +159,9 @@ namespace helix {
     //std::scoped_lock lock(guard);
     auto it = _orders.find(order_id);
     if (it == _orders.end()) {
-      throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
+      fmt::print("\norder_book::side()order id: {} with symbol: {} ", order_id, this->symbol());
+      return static_cast<side_type>(0);
+      //throw std::invalid_argument(std::string("invalid order id: ") + std::to_string(order_id));
     }
     return it->side;
   }

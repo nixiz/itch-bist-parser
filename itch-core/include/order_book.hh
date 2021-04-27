@@ -103,8 +103,10 @@ struct execution {
   side_type side{0};
   //! The number of remaining quantity on the traded price level.
   uint64_t remaining{ 0 };
+  bool is_valid{ false };
   execution() = default;
   execution(uint64_t price, side_type side, uint64_t remaining);
+  bool valid() const { return is_valid; }
 };
 
 /// \brief Order book is a price-time prioritized list of buy and sell
@@ -118,6 +120,25 @@ class order_book {
                               >
                           >
                       >;
+
+    /* boyle olacak herhalde?!?
+        using order_set = boost::multi_index::multi_index_container<
+                          order,
+                          boost::multi_index::indexed_by<
+                              boost::multi_index::hashed_non_unique<
+                                  boost::multi_index::composite_key<
+                                    order,
+                                    boost::multi_index::member<order, uint64_t, &order::id>,
+                                    boost::multi_index::member<order, side_type, &order::side>
+                                  > 
+                              >
+                          >
+                      >;
+    */
+    /*
+    * ayný order::id ile hem buy hem de sell order ekleme mesajý gelebiliyor. "IDGYO.E" için böyle bir data var. 
+    * bu nedenle multi_index_container unique olmak yerine order::id ve order::side'a göre tutulmalý
+    */
     //using order_set = std::unordered_map<decltype(order::id), order>;
     using iterator = order_set::const_iterator;
 

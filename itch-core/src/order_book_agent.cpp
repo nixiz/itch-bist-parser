@@ -14,7 +14,11 @@ namespace helix
   order_book_agent::order_book_agent(
     thread_pool* ob_thread_, 
     order_book* ob_) 
+#ifdef _DEBUG
+    : ob_thread(nullptr)
+#else
     : ob_thread(ob_thread_)
+#endif
     , ob(ob_)
   { }
 
