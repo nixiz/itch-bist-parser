@@ -7,10 +7,10 @@
 
 using namespace std;
 
-// fix mesaj tag'leri iÁin kullan˝lacak parser s˝n˝flar˝n˝n deklerasyonlar˝
-// tek bir dosya iÁerisinde ˆrnek uyguland˝˝ iÁin bu s˝n˝flar˝n yukar˝da 
-// deklare edilmesi gerekmektedir. d¸zg¸n bir hiyerar˛de bu s˝n˝flar kodlan˝rsa
-// buna gerek kalmayacakt˝r.
+// fix mesaj tag'leri için kullanılacak parser sınıflarının deklerasyonları
+// tek bir dosya içerisinde örnek uygulandığı için bu sınıfların yukarıda 
+// deklare edilmesi gerekmektedir. düzgün bir hiyerarşide bu sınıflar kodlanırsa
+// buna gerek kalmayacaktır.
 struct date_time_t {};
 struct legacy_any_tag_parser;
 struct tag_1_parser;
@@ -20,10 +20,10 @@ struct tag_2_parser;
 // ... 
 struct tag_52_parser;
 
-// b¸t¸n fix mesajlar˝n˝n parse edildikten sonra yap˝laca˝ i˛ler iÁin
-// temel visitor pattern'i uygulanm˝˛ bu s˝n˝f kullan˝labilir.
-// paket iÁerisinde gelen b¸t¸n mesajlar burada i˛lendikten sonra 
-// work_with_message() gibi bir metod ¸zerinden ne yap˝lmak isteniyorsa yap˝labilir.
+// bütün fix mesajlarının parse edildikten sonra yapılacağı işler için
+// temel visitor pattern'i uygulanmış bu sınıf kullanılabilir.
+// paket içerisinde gelen bütün mesajlar burada işlendiikten sonra 
+// work_with_message() gibi bir metod üzerinden ne yapılmak isteniyorsa yapılabilir.
 class FixMessageProcessor {
 public:
   void process_fix_tag(const legacy_any_tag_parser& parser) {}
@@ -37,8 +37,8 @@ public:
   void work_with_message() { }
 };
 
-// eski tip parser burada kullan˝lmaya devam edilebilir. bu sayede 
-// ˆzelle˛tirilmemi˛ bir fix tag mesaj˝ iÁin gelen mesaj˝n i˛lenmesi devam edecektir
+// eski tip parser burada kullanılmaya devam edilebilir. bu sayede 
+// özelleştirilmemiş bir fix tag mesajı için gelen mesajın işlenmesi devam edecektir
 struct legacy_any_tag_parser {
   bool parse(string_view message) { 
     std::cout << "parsing message: " << message << "\n";
@@ -49,7 +49,7 @@ struct legacy_any_tag_parser {
   }
 };
 
-// istenilen veya dˆn¸˛t¸r¸lecek t¸rlere gˆre ˆzelle˛tirilmi˛ parser s˝n˝flar˝:
+// istenilen veya dönüştürülecek tiplere göre özelleştirilmiş parser sınıfları oluşturulabilir. bu sınıflar parse ve apply metodlarını kendilerine göre özelleştirebilirler.:
 struct tag_1_parser {
   bool parse(string_view message) { return false; }
   void apply(FixMessageProcessor& fmp) {
@@ -71,8 +71,8 @@ void FixMessageProcessor::process_fix_tag(const tag_52_parser& parser) {
   date_time_t time = parser.date_time;
 }
 
-// tag numaras˝na gˆre ˆzelle˛tirilmemi˛ parser s˝n˝flar˝ varsay˝lan olarak
-// legacy, yava˛ parser s˝n˝f˝n˝ kullanarak devam edebilirler. 
+// tag numarasına göre özelleştirilmemiş parser sınıflar varsayılan olarak
+// legacy, yavaş parser sınıfını kullanarak devam edebilirler. 
 template <int tag>
 struct tag_traits {
   using type = void;
@@ -81,8 +81,8 @@ struct tag_traits {
 
 template <>
 struct tag_traits<1> {
-  // her tag iÁin belirlenmi˛ bir dˆn¸˛¸m t¸r¸ olduu varsay˝larak 
-  // 1 tag'i iÁin dˆn¸˛ yap˝lacak tipin int olmas˝ gerekiyorsa int olarak 
+  // her tag için belirlenmiş bir dönüşüm türü olduğu varsaylarak 
+  // 1 tag'i için dönüş yapacak tipin int olması gerekiyorsa int olarak 
   // belirtilecektir.
   using type = int;
   using parser = tag_1_parser;
@@ -90,23 +90,23 @@ struct tag_traits<1> {
 
 template <>
 struct tag_traits<52> {
-  // ayn˝ ˛ekilde 52 tag'i iÁin date time s˝n˝f˝ kullan˝lacakt˝r
+  // aynı şekilde 52 tag'i için date time sınıfı kullanılacaktır
   using type = date_time_t;
   using parser = tag_52_parser;
 };
 
-// fix mesaj˝ndan Á˝kar˝lacak tag deerine gˆre ˆzelle˛tirilmi˛ parser s˝n˝flar˝n
-// Áar˝lmas˝n˝ salayan s˝n˝f.
+// fix mesajından çıkarılacak tag değerine göre özelleştirilmiş parser sınıflarının
+// çağrılmasını sağlayan sınıf.
 template <int tag = -1>
 struct fix_tag_parser {
   using tag_type = typename tag_traits<tag>::type;
   using tag_parser = typename tag_traits<tag>::parser;
 
   static bool parse(string_view message) {
-    // gereksinime gˆre parser s˝n˝f˝ burada yarat˝labilir veya 
-    // yarat˝lmadan statik metoduna yˆnlendirilebilir.
-    // ayn˝ ˛ekilde statik instance kullan˝ld˝˝nda parser s˝n˝f˝n˝ 
-    // bir sonraki i˛leme haz˝rlamak da gerekebilir. 
+    // gereksinime göre parser sınıfı burada yaratılabilir veya 
+    // yaratılmadan statik metoduna yönlendirilebilir.
+    // aynı şekilde statik instance kullanıldığında parser sınıfını 
+    // bir sonraki işleme hazırlamak da gerekebilir. 
     // 'parser.clean()' veya 'parser.prepare()' gibi..
     return parser.parse(message);
   }
@@ -119,7 +119,7 @@ private:
   static inline tag_parser parser;
 };
 
-// stackoverflow'dan buldum kullan˝labilir: https://stackoverflow.com/a/58048821
+// stackoverflow'dan buldum kullanılabilir: https://stackoverflow.com/a/58048821
 std::vector<std::string_view> split(const std::string_view str, const char delim = ',')
 {
   std::vector<std::string_view> result;
@@ -144,29 +144,29 @@ std::vector<std::string_view> split(const std::string_view str, const char delim
   return result;
 }
 
-// ayn˝ ˛ekilde tek dosya ¸zerinde yazd˝˝m iÁin deklare etmem gerekiyor
+// aynı şekilde tek dosya üzerinde yazdığım için declare etmem gerekiyor
 void on_fix_tag_received(FixMessageProcessor& fmp, string_view message);
 
-// tcp'den veya bir yerden gelen fix mesaj˝n˝n al˝nd˝˝ metod:
+// tcp'den veya bir yerden gelen fix mesajının alındığı metod:
 void on_fix_message_received(
   const char* message, int len)
 {
-  // her gelen mesaj iÁin fix taglerini toplayarak i˛lemek iÁin haz˝r hale getiren bir s˝n˝f˝m˝z olsun
+  // her gelen mesaj için fix taglerini toplayarak işlemek için hazır hale getiren bir sınıfımız olsun
   FixMessageProcessor processor;
 
-  // cheksum hesapla ve mesaj˝n doruluunu kontrol et:
+  // cheksum hesapla ve mesajın doğruluğunu kontrol et:
   bool is_message_valid = true;
   if (!is_message_valid) return;
 
-  // gelen mesajlar˝ tag'ler halinde gruplayarak paralel veya seri bir ˛ekilde
-  // bir dˆng¸de i˛le:
+  // gelen mesajlar tag'ler halinde gruplayarak paralel veya seri bir şekilde
+  // bir döngüde işle:
   auto fix_tags = split(message, '|');
   for_each(begin(fix_tags), end(fix_tags),
            [&processor](string_view tag) {
-             // ve her tag parÁas˝n˝ iÁin parser metodumuzu Áa˝ral˝m
+             // ve her tag parçası için parser metodumuzu çağıralım
              on_fix_tag_received(processor, tag);
            });
-  // b¸t¸n mesajlar pars edildikten sonra gerekli olan i˛lemleri yapal˝m.
+  // bütün mesajlar pars edildikten sonra gerekli olan işlemleri yapalım.
   processor.work_with_message();
 }
 
@@ -176,7 +176,7 @@ void on_fix_tag_received(
 {
   auto message_parts = split(message, '=');
   int tag = std::stoi(message_parts.at(0).data());
-  // burada gelen mesaj˝n tag numaras˝na gˆre, ona ˆzel parser metodlar˝n˝ Áa˝r˝yoruz
+  // burada gelen mesajın tag numarasına göre, ona özel parser metodlarını çağırıyoruz
   switch (tag)
   {
   case 1:
