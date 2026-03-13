@@ -14,16 +14,16 @@ using boost::asio::use_future;
 namespace helix
 {
 	/*
-	bütün algoritmalar için base sınıf tanımlaması
-	mimari olarak her algoritma bir çekirdekte ve o çekirdek içerisinde tek bir thread üzerinde koşacaktır
-	aynı şekilde algoritmaların kullandığı order book'u yaratan bist_handler sınıfları da aynı çekirdek üzerinde
-	ancak 2inci thread üzerinde koşacaktır. 
+	bÃ¼tÃ¼n algoritmalar iÃ§in base sÄ±nÄ±f tanÄ±mlamasÄ±
+	mimari olarak her algoritma bir Ã§ekirdekte ve o Ã§ekirdek iÃ§erisinde tek bir thread Ã¼zerinde koÅŸacaktÄ±r
+	aynÄ± ÅŸekilde algoritmalarÄ±n kullandÄ±ÄŸÄ± order book'u yaratan bist_handler sÄ±nÄ±flarÄ± da aynÄ± Ã§ekirdek Ã¼zerinde
+	ancak 2inci thread Ã¼zerinde koÅŸacaktÄ±r. 
 	bu sayede 
-	 -	her çekirdekte bulunan T0 thread'inde bist_handler çalışarak, sisteme gelen paketleri açıp istenilen
-			semboller için order book yaratırken
-	 -	T1 thread'i içerisinde çalışan algoritma, order book tarafından gelen mesajları kendi thread'inde işliyor 
+	 -	her Ã§ekirdekte bulunan T0 thread'inde bist_handler Ã§alÄ±ÅŸarak, sisteme gelen paketleri aÃ§Ä±p istenilen
+			semboller iÃ§in order book yaratÄ±rken
+	 -	T1 thread'i iÃ§erisinde Ã§alÄ±ÅŸan algoritma, order book tarafÄ±ndan gelen mesajlarÄ± kendi thread'inde iÅŸliyor 
 			olabilecek. 
-	!! T0'dan gelen mesajlar, algo threadinde yer alan event loop'a atılarak T1 threadinde işlenecekler.
+	!! T0'dan gelen mesajlar, algo threadinde yer alan event loop'a atÄ±larak T1 threadinde iÅŸlenecekler.
 
 	 ____C0_____					 _______
 	|			|		  |					|		T0	| -> Bist Packet Handler
@@ -33,19 +33,19 @@ namespace helix
 												|		T1	| -> Certain Algo working with Bist Handler defined in T0
 												|_______|
 	
-	T0 ve T1 arasındaki haberleşme event loop'lar arasında function call olarak yapılacak. burada ipc veya dma gibi 
-	bir yapı kullanmaya gerek var mı bakmak lazım? L2 cache'ler core için private ise, T0'dan gelen datayı L2 cache 
-	içerisinde belirli bir adreste depolayarak, T1'in buradan okumasını sağlayabiliriz (dma ile).
+	T0 ve T1 arasÄ±ndaki haberleÅŸme event loop'lar arasÄ±nda function call olarak yapÄ±lacak. burada ipc veya dma gibi 
+	bir yapÄ± kullanmaya gerek var mÄ± bakmak lazÄ±m? L2 cache'ler core iÃ§in private ise, T0'dan gelen datayÄ± L2 cache 
+	iÃ§erisinde belirli bir adreste depolayarak, T1'in buradan okumasÄ±nÄ± saÄŸlayabiliriz (dma ile).
 
-	!! ileride boost fiber ile bu yapıyı yapmayı düşün !!
+	!! ileride boost fiber ile bu yapÄ±yÄ± yapmayÄ± dÃ¼ÅŸÃ¼n !!
 
-	Bir session yaratılırken:
-	 -	subscribe olunacak semboller ile bir helix::session yaratılır. (buradan bist handler sınıfı dönüyor)
-	 -	algoritma sınıfı ilgili parametreleri ile yaratılır ve çalışacağı session verilir.
-	 -	algoritma sınıfı session sınıfına istediği event'leri ile subscribe olur
+	Bir session yaratÄ±lÄ±rken:
+	 -	subscribe olunacak semboller ile bir helix::session yaratÄ±lÄ±r. (buradan bist handler sÄ±nÄ±fÄ± dÃ¶nÃ¼yor)
+	 -	algoritma sÄ±nÄ±fÄ± ilgili parametreleri ile yaratÄ±lÄ±r ve Ã§alÄ±ÅŸacaÄŸÄ± session verilir.
+	 -	algoritma sÄ±nÄ±fÄ± session sÄ±nÄ±fÄ±na istediÄŸi event'leri ile subscribe olur
 	
-	İleride burada dış uygulamalar ile haberleşecek agent'lar falan da olacak. bu sayede her algoritmanın
-	monitörleme ve emir alma/yenileme işlemleri yapılmış olacak.
+	Ä°leride burada dÄ±ÅŸ uygulamalar ile haberleÅŸecek agent'lar falan da olacak. bu sayede her algoritmanÄ±n
+	monitÃ¶rleme ve emir alma/yenileme iÅŸlemleri yapÄ±lmÄ±ÅŸ olacak.
 	*/
 	class algo_base
 	{
@@ -89,7 +89,7 @@ namespace helix
 		virtual void create_ob_with_symbols(std::vector<std::pair<std::string, size_t>> symbols);
 
 		// all algo's should implement tick() loop and all the things will go under this loop
-		virtual int run() { return 0; } // run bi dursun şimdilik. boost thread pool olunca gerek kalmadı sanki.
+		virtual int run() { return 0; } // run bi dursun ï¿½imdilik. boost thread pool olunca gerek kalmadï¿½ sanki.
 	private:
 		std::unordered_map<std::string, helix::order_book> ob_sym_map;
 

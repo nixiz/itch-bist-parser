@@ -136,8 +136,8 @@ class order_book {
                       >;
     */
     /*
-    * aynı order::id ile hem buy hem de sell order ekleme mesajı gelebiliyor. "IDGYO.E" için böyle bir data var. 
-    * bu nedenle multi_index_container unique olmak yerine order::id ve order::side'a göre tutulmalı
+    * aynÄ± order::id ile hem buy hem de sell order ekleme mesajÄ± gelebiliyor. "IDGYO.E" iÃ§in bÃ¶yle bir data var. 
+    * bu nedenle multi_index_container unique olmak yerine order::id ve order::side'a gÃ¶re tutulmalÄ±
     */
     //using order_set = std::unordered_map<decltype(order::id), order>;
     using iterator = order_set::const_iterator;

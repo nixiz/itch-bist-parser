@@ -277,13 +277,137 @@ static_assert(sizeof(itch_bist_equilibrium_price_update) == 53,
 }
 #endif
 
-template <class msg_t>
-constexpr static const bool should_process = false;
+// template <class msg_t>
+// constexpr static const bool should_process = false;
+
+// template <>
+// constexpr static const bool should_process<itch_bist_seconds> = true;
+
+template <typename T>
+struct itch_message_traits {
+  constexpr const static char identifier = '?';
+  constexpr const static uint32_t packet_len = 0;
+};
 
 template <>
-constexpr static const bool should_process<itch_bist_seconds> = true;
+struct itch_message_traits<itch_bist_message> {
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_message);
+};
+
+template <>
+struct itch_message_traits<itch_bist_seconds> {
+  constexpr const static char identifier = 'T';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_seconds);
+};
+
+template <>
+struct itch_message_traits<itch_bist_order_book_directory> {
+  constexpr const static char identifier = 'R';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_order_book_directory);
+};
+
+template <>
+struct itch_message_traits<itch_bist_combination_order_book_leg> {
+  constexpr const static char identifier = 'M';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_combination_order_book_leg);
+};
+
+template <>
+struct itch_message_traits<itch_bist_tick_size_table_entry> {
+  constexpr const static char identifier = 'L';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_tick_size_table_entry);
+};
+
+template <>
+struct itch_message_traits<itch_bist_system_event> {
+  constexpr const static char identifier = 'S';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_system_event);
+};
+
+template <>
+struct itch_message_traits<itch_bist_order_book_state> {
+  constexpr const static char identifier = 'O';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_order_book_state);
+};
+
+template <>
+struct itch_message_traits<itch_bist_add_order> {
+  constexpr const static char identifier = 'A';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_add_order);
+};
+
+template <>
+struct itch_message_traits<itch_bist_add_order_mpid> {
+  constexpr const static char identifier = 'F';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_add_order_mpid);
+};
+
+template <>
+struct itch_message_traits<itch_bist_order_executed> {
+  constexpr const static char identifier = 'E';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_order_executed);
+};
+
+template <>
+struct itch_message_traits<itch_bist_order_executed_with_price> {
+  constexpr const static char identifier = 'C';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_order_executed_with_price);
+};
+
+template <>
+struct itch_message_traits<itch_bist_order_replace> {
+  constexpr const static char identifier = 'U';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_order_replace);
+};
+
+template <>
+struct itch_message_traits<itch_bist_order_delete> {
+  constexpr const static char identifier = 'D';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_order_delete);
+};
+
+template <>
+struct itch_message_traits<itch_bist_trade> {
+  constexpr const static char identifier = 'P';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_trade);
+};
+
+template <>
+struct itch_message_traits<itch_bist_equilibrium_price_update> {
+  constexpr const static char identifier = 'Z';
+  constexpr const static uint32_t packet_len = sizeof(itch_bist_equilibrium_price_update);
+};
+
+template <typename T>
+constexpr uint32_t itch_packet_size() {
+  return itch_message_traits<T>::packet_len;
+}
+
+constexpr uint32_t itch_packet_size(const char message_type) {
+  switch (message_type) {
+    case 'T': return itch_message_traits<itch_bist_seconds>::packet_len;
+    case 'R': return itch_message_traits<itch_bist_order_book_directory>::packet_len;
+    case 'M': return itch_message_traits<itch_bist_combination_order_book_leg>::packet_len;
+    case 'L': return itch_message_traits<itch_bist_tick_size_table_entry>::packet_len;
+    case 'S': return itch_message_traits<itch_bist_system_event>::packet_len;
+    case 'O': return itch_message_traits<itch_bist_order_book_state>::packet_len;
+    case 'A': return itch_message_traits<itch_bist_add_order>::packet_len;
+    case 'F': return itch_message_traits<itch_bist_add_order_mpid>::packet_len;
+    case 'E': return itch_message_traits<itch_bist_order_executed>::packet_len;
+    case 'C': return itch_message_traits<itch_bist_order_executed_with_price>::packet_len;
+    case 'U': return itch_message_traits<itch_bist_order_replace>::packet_len;
+    case 'D': return itch_message_traits<itch_bist_order_delete>::packet_len;
+    case 'P': return itch_message_traits<itch_bist_trade>::packet_len;
+    case 'Z': return itch_message_traits<itch_bist_equilibrium_price_update>::packet_len;
+    // default: throw std::runtime_error("unknown message type: " + std::string(1, message_type));
+    default: return 0;
+  }
+}
+
+template <typename T>
+constexpr char itch_packet_identifier() {
+  return itch_message_traits<T>::identifier;
+}
 
 
-
-
-#endif
+#endif // ITCH_BIST_MESSAGES_HH

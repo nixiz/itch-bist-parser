@@ -262,11 +262,11 @@ namespace helix
 		ts->trades++;
 	}
 
-  symbol_tracker_algo* symbol_tracker_algo::create_new_algo(
+  std::shared_ptr<symbol_tracker_algo> symbol_tracker_algo::create_new_algo(
 		std::weak_ptr<session> session, 
 		std::vector<std::string> symbol)
   {
-    return new symbol_tracker_algo(session, std::move(symbol));
+    return std::make_shared<symbol_tracker_algo>(session, std::move(symbol));
   }
 
   symbol_tracker_algo::symbol_tracker_algo(
@@ -276,7 +276,7 @@ namespace helix
   {
 		impl.reset(new fmt_pretty_ops);
 		std::stringstream s_str;
-		s_str << "D:/hft/results/" << "result_" << symbols.front() << ".out";
+		s_str << "/Users/okatli/Software/borsa-istanbul-demo-data/results/" << "result_" << symbols.front() << ".out";
 		impl->init(s_str.str());
 		impl->fmt_header();
 		std::vector<std::pair<std::string, size_t>> vec; vec.reserve(symbols.size());
