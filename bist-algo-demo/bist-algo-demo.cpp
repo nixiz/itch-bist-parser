@@ -43,7 +43,7 @@ public:
 		return data;
 	}
 
-	std::string_view peek(size_t n) {
+	std::string_view peek(size_t n = 256) {
 		if (!input_fd.is_open() || n > buffer.size()) {
 			throw std::runtime_error("file is not open or read size is too large");
 		}
@@ -72,7 +72,7 @@ public:
 
 private:
 	std::ifstream input_fd;
-	std::array<char, 1300> buffer;
+	std::array<char, 256> buffer;
 	std::size_t pos;
 	std::size_t fsize;
 };
@@ -94,7 +94,6 @@ int main(int argc, const char* argv[])
 	std::vector<std::shared_ptr<algo_base>> algos
 	{
 		symbol_tracker_algo::create_new_algo(session, {"ACSEL.E ", "AKBNK.E ", "GARAN.E ", "HALKB.E "}),
-		symbol_tracker_algo::create_new_algo(session, {"ADEL.E  "})
 	};
 
 	std::chrono::nanoseconds nmap_dur;
