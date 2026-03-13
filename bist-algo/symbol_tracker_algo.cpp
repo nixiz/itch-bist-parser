@@ -7,6 +7,21 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <cerrno>
+#include <cstring>
+#include <cassert>
+
+#ifndef _WIN32
+// Compatibility wrapper for fopen_s on non-Windows platforms
+inline errno_t fopen_s(FILE **f, const char *name, const char *mode) {
+    errno_t ret = 0;
+    assert(f);
+    *f = fopen(name, mode);
+    if (!*f)
+        ret = errno;
+    return ret;
+}
+#endif
 
 namespace helix 
 {
@@ -161,7 +176,7 @@ namespace helix
 			auto ask_price = get_price(ob, ask_level.price);
 			auto ask_size  = ask_level.size;
 
-			// burasý neden böyle mutlaka öðren!
+			// burasï¿½ neden bï¿½yle mutlaka ï¿½ï¿½ren!
 			if (!bid_price || !ask_size) {
 				//fprintf(output, " ___*-*-*-*-*-*-*-*-*-*-*-*___ |");
 				return;

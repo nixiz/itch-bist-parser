@@ -18,6 +18,24 @@
 #include <chrono>
 #include <iomanip>
 
+#ifndef _WIN32
+// Source - https://stackoverflow.com/a/1513215
+// Posted by Alex B, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-03-13, License - CC BY-SA 2.5
+
+#include <stdio.h>
+#include <cassert>
+errno_t fopen_s(FILE **f, const char *name, const char *mode) {
+    errno_t ret = 0;
+    assert(f);
+    *f = fopen(name, mode);
+    /* Can't be sure about 1-to-1 mapping of errno and MS' errno_t */
+    if (!*f)
+        ret = errno;
+    return ret;
+}
+#endif
+
 static const char* program;
 
 size_t max_price_levels = 0;
