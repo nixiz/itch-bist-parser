@@ -1,6 +1,7 @@
 #include "symbol_tracker_algo.h"
 
 #include <sstream>
+#include <chrono>
 #include <memory>
 #include <iomanip>
 #include <inttypes.h>
@@ -143,8 +144,8 @@ namespace helix
 				return;
 			}
 			nanoseconds ns(*reinterpret_cast<uint64_t*>(&timestamp));
-			time_point<system_clock, seconds> tp(duration_cast<seconds>(ns));
-			auto tm = system_clock::to_time_t(tp);
+			time_point<std::chrono::system_clock, seconds> tp(duration_cast<seconds>(ns));
+			auto tm = std::chrono::system_clock::to_time_t(tp);
 			auto lcltm = std::localtime(&tm);
 
 			const uint64_t hours = lcltm->tm_hour;
